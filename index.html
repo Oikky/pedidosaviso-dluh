@@ -1582,21 +1582,26 @@ function updateRefreshLabel(txt) {
 }
 
 // ─── BOOT ─────────────────────────────────────────────────
-if (loadSavedConfig()) {
-  // Show option to continue with saved config
-  document.getElementById('coda-token').value = config.token || '';
-  document.getElementById('coda-doc-id').value = config.docId || '';
-  document.getElementById('coda-table-id').value = config.tableId || '';
-  if (config.cols) {
-    document.getElementById('col-nome').value = config.cols.nome || 'Cliente';
-    document.getElementById('col-data').value = config.cols.data || 'Data de Entrega';
-    document.getElementById('col-tipo').value = config.cols.tipo || 'Tipo';
-    document.getElementById('col-pedido').value = config.cols.pedido || 'Pedido';
-    document.getElementById('col-telefone').value = config.cols.telefone || 'Telefone';
-    document.getElementById('col-valor').value = config.cols.valor || 'Valor Total';
-  }
-  if (config.alertHours) document.getElementById('alert-hours').value = config.alertHours;
-}
+// Configuração fixa — conecta automaticamente ao abrir
+config = {
+  token: 'c2df9327-a40c-4716-9f59-c40620d691ef',
+  docId: 'Wq8ktEEl3N',
+  tableId: 'Pedidos Base',
+  cols: {
+    nome: 'Cliente',
+    data: 'Data e Hora',
+    tipo: 'Entrega/Retirada',
+    pedido: 'Nota',
+    telefone: 'Número',
+    valor: 'Valor Total',
+    status: 'Status',
+    statusValor: 'Entregue',
+  },
+  alertHours: 1
+};
+
+isDemo = false;
+startApp();
 </script>
 </body>
 </html>
