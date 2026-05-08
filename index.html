@@ -114,6 +114,54 @@
     text-decoration: none;
   }
 
+  /* ── DELIVERED BUTTON ── */
+  .btn-delivered {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--green-soft);
+    border: 1px solid var(--green);
+    border-radius: var(--radius-sm);
+    color: var(--green);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.82rem;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 12px;
+    width: 100%;
+    justify-content: center;
+  }
+  .btn-delivered:hover { background: var(--green); color: #fff; }
+  .btn-delivered:disabled { opacity: 0.5; cursor: default; }
+
+  .btn-delivered-late {
+    background: var(--red-soft);
+    border-color: var(--red);
+    color: var(--red);
+  }
+  .btn-delivered-late:hover { background: var(--red); color: #fff; }
+
+  /* ── LATE PULSE ── */
+  .late-banner {
+    background: var(--red-soft);
+    border: 1px solid var(--red);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: latePulse 1.5s ease-in-out infinite;
+    margin: 0 16px 12px;
+  }
+  @keyframes latePulse {
+    0%,100% { box-shadow: 0 0 0 rgba(248,113,113,0); }
+    50% { box-shadow: 0 0 16px rgba(248,113,113,0.4); }
+  }
+  .late-banner-text { flex: 1; font-size: 0.85rem; color: var(--red); font-weight: 600; }
+  .late-banner-time { font-family: 'Syne', sans-serif; font-weight: 800; color: var(--red); font-size: 1rem; }
+
   .btn-primary {
     width: 100%;
     background: var(--accent);
@@ -722,6 +770,18 @@
     </div>
 
     <div class="setup-field">
+      <label>Coluna: Status / Entregue</label>
+      <input type="text" id="col-status" placeholder="Ex: Status" value="Status">
+      <div class="hint">Coluna que indica se o pedido foi entregue/retirado</div>
+    </div>
+
+    <div class="setup-field">
+      <label>Valor para marcar como entregue</label>
+      <input type="text" id="col-status-valor" placeholder="Ex: Entregue" value="Entregue">
+      <div class="hint">O que escrever nessa coluna quando o pedido for concluído</div>
+    </div>
+
+    <div class="setup-field">
       <label>Avisar com quantas horas de antecedência?</label>
       <select id="alert-hours">
         <option value="1" selected>1 hora antes</option>
@@ -1047,7 +1107,10 @@ function renderFeatured(order) {
   const isUrgent = minsLeft <= 30;
   const timerClass = isUrgent ? 'urgent' : '';
 
-  const timerText = minsLeft < 0
+  const isLate = minsLeft < 0;
+  const timerClass = (isLate || minsLeft <= 5) ? 'urgent' : minsLeft <= 15 ? 'urgent' : '';
+
+  const timerText = isLate
     ? 'ATRASADO ' + Math.abs(minsLeft) + 'min'
     : minsLeft === 0 ? 'AGORA!'
     : minsLeft >= 60 ? Math.floor(minsLeft/60) + 'h ' + (minsLeft%60) + 'min'
@@ -1059,6 +1122,20 @@ function renderFeatured(order) {
 
   const itemsHtml = parseItemsHtml(order.pedido);
 
+  const lateBanner = isLate && !order.entregue ? `
+    <div class="late-banner">
+      <span style="font-size:1.3rem">⚠️</span>
+      <span class="late-banner-text">Pedido atrasado! Marque como entregue quando concluir.</span>
+      <span class="late-banner-time">${Math.abs(minsLeft)}min</span>
+    </div>
+  ` : '';
+
+  const deliverBtn = !order.entregue ? `
+    <button class="btn-delivered ${isLate ? 'btn-delivered-late' : ''}" id="deliver-btn-${order.id}" onclick="markDelivered('${order.id}')">
+      ✓ Marcar como ${isEntrega ? 'Entregue' : 'Retirado'}
+    </button>
+  ` : `<div style="text-align:center;color:var(--green);font-size:0.85rem;padding:10px 0">✅ Concluído</div>`;
+
   el.innerHTML = `
     <div class="featured-card">
       <div class="featured-header">
@@ -1066,6 +1143,7 @@ function renderFeatured(order) {
         <span class="featured-name">${escHtml(order.nome)}</span>
         <span class="featured-tipo">${tipoIcon} ${tipoLabel}</span>
       </div>
+      ${lateBanner}
       <div class="featured-body">
         <div class="featured-info-box">
           <div class="featured-info-label">Horário</div>
@@ -1099,6 +1177,7 @@ function renderFeatured(order) {
         <div class="featured-phone">📞 ${escHtml(order.telefone || '—')}</div>
         <div class="featured-total">${escHtml(String(order.valor || ''))}</div>
       </div>
+      <div style="padding: 0 16px 16px">${deliverBtn}</div>
     </div>
   `;
 
@@ -1146,19 +1225,29 @@ function renderQueue(filtered, featured) {
     const isEntrega = o.tipo.toLowerCase().includes('entrega');
     const tipoClass = isEntrega ? 'entrega' : 'retirada';
     const tipoLabel = isEntrega ? '🛵 Entrega' : '🛍️ Retirada';
+    const isLate = minsLeft < 0;
     const isUrgent = minsLeft >= 0 && minsLeft <= 60;
     const isSoon = minsLeft >= 0 && minsLeft <= 120;
+    const isDelivered = !!o.entregue;
 
     let cdText = '', cdClass = '';
-    if (minsLeft < 0) { cdText = 'ATRASADO'; cdClass = 'urgent'; }
+    if (isDelivered) { cdText = '✅ Entregue'; cdClass = ''; }
+    else if (isLate) { cdText = 'ATRASADO ' + Math.abs(minsLeft) + 'min'; cdClass = 'urgent'; }
     else if (minsLeft === 0) { cdText = 'AGORA'; cdClass = 'urgent'; }
     else if (minsLeft >= 60) { cdText = Math.floor(minsLeft/60)+'h'+(minsLeft%60?(' '+minsLeft%60+'min'):''); cdClass = isSoon ? 'soon' : ''; }
     else { cdText = minsLeft+'min'; cdClass = isUrgent ? 'urgent' : 'soon'; }
 
     const itemsHtml = parseItemsHtml(o.pedido);
 
+    const qDeliverBtn = !isDelivered ? `
+      <button class="btn-delivered ${isLate ? 'btn-delivered-late' : ''}" id="deliver-btn-${o.id}"
+        onclick="event.stopPropagation();markDelivered('${o.id}')">
+        ✓ Marcar como ${isEntrega ? 'Entregue' : 'Retirado'}
+      </button>` : `<div style="color:var(--green);font-size:0.78rem;padding:6px 0">✅ Concluído</div>`;
+
     return `
-      <div class="queue-card ${tipoClass}" onclick="toggleQueueCard(this)">
+      <div class="queue-card ${tipoClass} ${isDelivered ? 'opacity-50' : ''}" onclick="toggleQueueCard(this)"
+           style="${isDelivered ? 'opacity:0.45;filter:saturate(0)' : ''}">
         <div class="queue-card-top">
           <span class="queue-pos">#${idx+1}</span>
           <span class="queue-name">${escHtml(o.nome)}</span>
@@ -1166,7 +1255,7 @@ function renderQueue(filtered, featured) {
         </div>
         <div class="queue-card-bottom">
           <span class="tag ${tipoClass}">${tipoLabel}</span>
-          ${isUrgent ? '<span class="tag urgente">🔥 Urgente</span>' : ''}
+          ${isLate && !isDelivered ? '<span class="tag urgente">⚠️ Atrasado</span>' : isUrgent && !isDelivered ? '<span class="tag urgente">🔥 Urgente</span>' : ''}
           <span class="queue-date">${fmtDate(o.datetime)}</span>
           <span class="queue-countdown ${cdClass}">${cdText}</span>
         </div>
@@ -1174,6 +1263,7 @@ function renderQueue(filtered, featured) {
           ${itemsHtml}
           ${o.telefone ? `<div style="margin-top:8px;font-size:0.8rem;color:var(--text3)">📞 ${escHtml(o.telefone)}</div>` : ''}
           ${o.valor ? `<div style="font-size:0.85rem;color:var(--green);font-weight:700;margin-top:4px">${escHtml(String(o.valor))}</div>` : ''}
+          ${qDeliverBtn}
         </div>
       </div>
     `;
@@ -1185,34 +1275,172 @@ function toggleQueueCard(el) {
   det.classList.toggle('open');
 }
 
+// ─── BELL SOUND (Web Audio API) ───────────────────────────
+function playBell(intensity = 1) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+    const ringBell = (delay, freq, gain) => {
+      const osc = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+      const osc2 = ctx.createOscillator();
+      const gainNode2 = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(freq * 2.76, ctx.currentTime + delay);
+
+      gainNode.gain.setValueAtTime(0, ctx.currentTime + delay);
+      gainNode.gain.linearRampToValueAtTime(gain, ctx.currentTime + delay + 0.01);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 2.5);
+
+      gainNode2.gain.setValueAtTime(0, ctx.currentTime + delay);
+      gainNode2.gain.linearRampToValueAtTime(gain * 0.3, ctx.currentTime + delay + 0.01);
+      gainNode2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 1.5);
+
+      osc.connect(gainNode); gainNode.connect(ctx.destination);
+      osc2.connect(gainNode2); gainNode2.connect(ctx.destination);
+      osc.start(ctx.currentTime + delay);
+      osc2.start(ctx.currentTime + delay);
+      osc.stop(ctx.currentTime + delay + 2.5);
+      osc2.stop(ctx.currentTime + delay + 2.5);
+    };
+
+    // Number of rings based on intensity
+    const rings = intensity === 3 ? 4 : intensity === 2 ? 3 : 2;
+    const freq = intensity === 3 ? 880 : intensity === 2 ? 740 : 660;
+    for (let i = 0; i < rings; i++) ringBell(i * 0.55, freq, 0.6);
+
+    return new Promise(r => setTimeout(r, rings * 550 + 600));
+  } catch(e) {
+    return Promise.resolve();
+  }
+}
+
 // ─── ALERTS ───────────────────────────────────────────────
+// Alert stages in minutes before: 60, 30, 15, 5, 0 (on time), then late every 5min
+const ALERT_STAGES = [60, 30, 15, 5, 0];
+
 function checkAlerts() {
   const now = new Date();
-  const alertMs = (config.alertHours || 1) * 60 * 60 * 1000;
 
   orders.forEach(o => {
-    const diff = o.datetime - now;
-    if (diff > 0 && diff <= alertMs) {
-      const key = `${o.id}_${Math.floor(diff / (5 * 60 * 1000))}`; // alert every 5 min window
-      if (!alertedOrders.has(key)) {
+    if (o.entregue) return; // skip delivered
+    const diffMs = o.datetime - now;
+    const diffMin = Math.round(diffMs / 60000);
+
+    // Pre-delivery alerts at exact stages
+    ALERT_STAGES.forEach(stage => {
+      const key = `${o.id}_stage_${stage}`;
+      // Fire if within 1 minute window of this stage
+      if (diffMin <= stage && diffMin > stage - 1.5 && !alertedOrders.has(key)) {
         alertedOrders.add(key);
-        triggerAlert(o, Math.round(diff / 60000));
+        triggerAlert(o, stage, 'pre');
+      }
+    });
+
+    // Late alerts every 5 minutes
+    if (diffMin < 0) {
+      const lateMin = Math.abs(diffMin);
+      const lateKey = `${o.id}_late_${Math.floor(lateMin / 5)}`;
+      if (!alertedOrders.has(lateKey)) {
+        alertedOrders.add(lateKey);
+        triggerAlert(o, lateMin, 'late');
       }
     }
   });
 }
 
-setInterval(checkAlerts, 60000);
+setInterval(checkAlerts, 30000); // check every 30s
 
-function triggerAlert(order, minsLeft) {
+async function triggerAlert(order, mins, type) {
+  if (!soundEnabled) return;
+
   const isEntrega = order.tipo.toLowerCase().includes('entrega');
   const tipoText = isEntrega ? 'entrega' : 'retirada';
-  const msg = `Pedido de ${order.nome} — ${tipoText} em ${minsLeft} minutos!`;
 
-  showToastMsg('🔔 ' + fmtTime(order.datetime) + ' · ' + (isEntrega ? '🛵 Entrega' : '🛍️ Retirada'), order.nome);
+  let bellIntensity, toastTitle, speechText;
 
-  if (soundEnabled) {
-    speak(`Atenção! Pedido de ${order.nome} para ${tipoText} em ${minsLeft} minutos. Horário: ${fmtTimeSpeak(order.datetime)}.`);
+  if (type === 'late') {
+    bellIntensity = 3;
+    toastTitle = `⚠️ ATRASADO ${mins} min`;
+    speechText = `Atenção! O pedido de ${order.nome} está atrasado ${mins} minutos. ${isEntrega ? 'Entrega' : 'Retirada'} era às ${fmtTimeSpeak(order.datetime)}. Marque como entregue quando concluir.`;
+  } else if (mins === 0) {
+    bellIntensity = 3;
+    toastTitle = `🔔 AGORA — ${fmtTime(order.datetime)}`;
+    speechText = `${order.nome}! Pedido para ${tipoText} agora! Horário: ${fmtTimeSpeak(order.datetime)}.`;
+  } else if (mins <= 5) {
+    bellIntensity = 3;
+    toastTitle = `🔥 ${mins} MIN — ${fmtTime(order.datetime)}`;
+    speechText = `Urgente! ${mins} minutos para o pedido de ${order.nome}. ${tipoText} às ${fmtTimeSpeak(order.datetime)}.`;
+  } else if (mins <= 15) {
+    bellIntensity = 2;
+    toastTitle = `⏰ ${mins} min — ${fmtTime(order.datetime)}`;
+    speechText = `Atenção! ${mins} minutos para o pedido de ${order.nome}. ${tipoText} às ${fmtTimeSpeak(order.datetime)}.`;
+  } else {
+    bellIntensity = 1;
+    toastTitle = `🔔 ${mins} min — ${fmtTime(order.datetime)}`;
+    speechText = `Lembrete. ${mins} minutos para o pedido de ${order.nome} para ${tipoText} às ${fmtTimeSpeak(order.datetime)}.`;
+  }
+
+  // Show toast immediately
+  showToastMsg(toastTitle, order.nome + (type === 'late' ? ' — ⚠️ Marque como entregue!' : ''));
+
+  // Bell first, then speech
+  await playBell(bellIntensity);
+  speak(speechText);
+
+  renderAll();
+}
+
+// ─── MARK AS DELIVERED ────────────────────────────────────
+async function markDelivered(orderId) {
+  const btn = document.getElementById('deliver-btn-' + orderId);
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Salvando...'; }
+
+  // Update locally
+  const order = orders.find(o => o.id === orderId);
+  if (order) order.entregue = true;
+
+  if (!isDemo) {
+    try {
+      const colStatus = config.cols.status || 'Status';
+      const statusValor = config.cols.statusValor || 'Entregue';
+
+      const url = `https://coda.io/apis/v1/docs/${config.docId}/tables/${encodeURIComponent(config.tableId)}/rows/${orderId}`;
+      const res = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${config.token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          row: {
+            cells: [{ column: colStatus, value: statusValor }]
+          }
+        })
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        showToastMsg('❌ Erro ao salvar', err.message || 'Tente novamente');
+        if (order) order.entregue = false;
+        if (btn) { btn.disabled = false; btn.textContent = '✓ Marcar como Entregue'; }
+        return;
+      }
+
+      showToastMsg('✅ Entregue!', order ? order.nome : '');
+      speak('Pedido marcado como entregue!');
+    } catch(e) {
+      showToastMsg('❌ Erro de conexão', e.message);
+      if (order) order.entregue = false;
+      if (btn) { btn.disabled = false; btn.textContent = '✓ Marcar como Entregue'; }
+      return;
+    }
+  } else {
+    showToastMsg('✅ Entregue! (demo)', order ? order.nome : '');
+    speak('Pedido marcado como entregue!');
   }
 
   renderAll();
