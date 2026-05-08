@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🍽️ Painel de Pedidos</title>
+<meta name="theme-color" content="#f97316">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pedidos">
+<link rel="manifest" href="./manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -817,6 +823,19 @@
     <button class="btn-icon" onclick="showSetup()" title="Configurações">⚙</button>
   </header>
 
+  <!-- Audio unlock — necessário no Android TV -->
+  <div id="audio-unlock-btn" onclick="unlockAudio()" style="
+    position:fixed;bottom:20px;right:20px;z-index:500;
+    background:var(--accent);color:#fff;
+    font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;
+    padding:14px 20px;border-radius:12px;cursor:pointer;
+    box-shadow:0 4px 20px rgba(249,115,22,0.5);
+    animation:pulseGlow 2s ease-in-out infinite;
+    display:flex;align-items:center;gap:8px;
+  ">
+    🔊 Toque aqui para ativar o som
+  </div>
+
   <!-- Featured -->
   <div class="featured-section">
     <div class="section-label">▶ Próximo a fazer</div>
@@ -1481,25 +1500,56 @@ async function markDelivered(orderId) {
   renderAll();
 }
 
-// ─── SPEECH ───────────────────────────────────────────────
-function speak(text) {
-  if (!window.speechSynthesis) return;
-  window.speechSynthesis.cancel();
-  const utt = new SpeechSynthesisUtterance(text);
-  utt.lang = 'pt-BR';
-  utt.rate = 0.9;
-  utt.pitch = 1;
-  utt.volume = 1;
+// ─── SPEECH — Google TTS (funciona em Android TV) ─────────
+let audioUnlocked = false;
+const audioCtxUnlock = new (window.AudioContext || window.webkitAudioContext)();
 
-  // Prefer pt-BR voice
-  const voices = window.speechSynthesis.getVoices();
-  const ptVoice = voices.find(v => v.lang.startsWith('pt'));
-  if (ptVoice) utt.voice = ptVoice;
-
-  window.speechSynthesis.speak(utt);
+// Unlock audio on first interaction (required by Android TV)
+function unlockAudio() {
+  if (audioUnlocked) return;
+  audioUnlocked = true;
+  // Play silent buffer to unlock
+  const buf = audioCtxUnlock.createBuffer(1, 1, 22050);
+  const src = audioCtxUnlock.createBufferSource();
+  src.buffer = buf;
+  src.connect(audioCtxUnlock.destination);
+  src.start(0);
+  document.getElementById('audio-unlock-btn').style.display = 'none';
+  showToastMsg('🔊 Áudio ativado!', 'Os alertas sonoros estão funcionando');
 }
 
-window.speechSynthesis && window.speechSynthesis.addEventListener('voiceschanged', () => {});
+async function speak(text) {
+  if (!soundEnabled) return;
+
+  // Try Google TTS first (works on Android TV WebView)
+  try {
+    const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=pt-BR&client=tw-ob&q=${encodeURIComponent(text)}`;
+    const audio = new Audio(url);
+    audio.volume = 1.0;
+    await audio.play();
+    return;
+  } catch(e) {
+    console.warn('Google TTS falhou, tentando speechSynthesis:', e);
+  }
+
+  // Fallback: speechSynthesis
+  try {
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      const utt = new SpeechSynthesisUtterance(text);
+      utt.lang = 'pt-BR';
+      utt.rate = 0.9;
+      utt.pitch = 1;
+      utt.volume = 1;
+      const voices = window.speechSynthesis.getVoices();
+      const ptVoice = voices.find(v => v.lang.startsWith('pt'));
+      if (ptVoice) utt.voice = ptVoice;
+      window.speechSynthesis.speak(utt);
+    }
+  } catch(e) {
+    console.warn('speechSynthesis também falhou:', e);
+  }
+}
 
 function toggleSound() {
   soundEnabled = !soundEnabled;
@@ -1602,6 +1652,14 @@ config = {
 
 isDemo = false;
 startApp();
+
+// ─── PWA — Service Worker ──────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js')
+    .then(() => console.log('✅ Service Worker registrado — atualizações automáticas ativas'))
+    .catch(e => console.warn('SW não registrado:', e));
+}
+
 </script>
 </body>
 </html>
