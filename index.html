@@ -924,15 +924,42 @@ setInterval(updateClock, 1000);
 updateClock();
 
 // ─── CONFIG ───────────────────────────────────────────────
+function showSetupError(msg) {
+  let el = document.getElementById('setup-error');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'setup-error';
+    el.style.cssText = 'background:#f871711a;border:1px solid #f87171;border-radius:8px;padding:12px 14px;color:#f87171;font-size:0.85rem;margin-bottom:12px;';
+    const btn = document.querySelector('.btn-primary');
+    btn.parentNode.insertBefore(el, btn);
+  }
+  el.textContent = '⚠️ ' + msg;
+  el.style.display = 'block';
+}
+
+function hideSetupError() {
+  const el = document.getElementById('setup-error');
+  if (el) el.style.display = 'none';
+}
+
 function saveConfig() {
+  hideSetupError();
+
+  // Visual feedback immediately
+  const connectBtn = document.querySelector('.btn-primary');
+  if (connectBtn) { connectBtn.textContent = '⏳ Conectando...'; connectBtn.disabled = true; }
+
   const token = document.getElementById('coda-token').value.trim();
   const docId = document.getElementById('coda-doc-id').value.trim();
   const tableId = document.getElementById('coda-table-id').value.trim();
 
-  if (!token || !docId || !tableId) {
-    alert('Preencha Token, ID do Documento e ID/Nome da Tabela.');
-    return;
-  }
+  console.log('saveConfig chamado:', { token: token ? '✓' : '✗', docId, tableId });
+
+  const resetBtn = () => { if (connectBtn) { connectBtn.textContent = '🔗 Conectar ao Coda'; connectBtn.disabled = false; } };
+
+  if (!token) { showSetupError('Preencha o API Token do Coda.'); resetBtn(); return; }
+  if (!docId) { showSetupError('Preencha o ID do Documento.'); resetBtn(); return; }
+  if (!tableId) { showSetupError('Preencha o ID ou Nome da Tabela.'); resetBtn(); return; }
 
   config = {
     token, docId, tableId,
@@ -946,10 +973,15 @@ function saveConfig() {
       status: document.getElementById('col-status').value.trim() || 'Status',
       statusValor: document.getElementById('col-status-valor').value.trim() || 'Entregue',
     },
-    alertHours: parseFloat(document.getElementById('alert-hours').value)
+    alertHours: parseFloat(document.getElementById('alert-hours').value) || 1
   };
 
-  localStorage.setItem('pedidos_config', JSON.stringify(config));
+  try {
+    localStorage.setItem('pedidos_config', JSON.stringify(config));
+  } catch(e) {
+    console.warn('localStorage indisponível (normal em file://):', e);
+  }
+
   isDemo = false;
   startApp();
 }
