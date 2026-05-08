@@ -1,7 +1,7 @@
 const https = require('https');
 const http = require('http');
 
-const XI_KEY = 'f8059a1a1d562e61cc4b333149dfdbe708bc6b187ff464fe9f35f37372195cc7';
+const XI_KEY = '0ea811c2e82a6c12c044c7c384f2949756d2a0076b65116bf830d239ec0a9d5b';
 const XI_VOICE = '21m00Tcm4TlvDq8ikWAM';
 const PORT = process.env.PORT || 3000;
 
