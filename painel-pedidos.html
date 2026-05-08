@@ -718,7 +718,7 @@
 <body>
 
 <!-- SETUP SCREEN -->
-<div id="setup-screen">
+<div id="setup-screen" style="display:none">
   <div class="setup-card">
     <div class="setup-logo">🍽️ Painel de Pedidos</div>
     <div class="setup-subtitle">Conecte com seu Coda para começar</div>
@@ -805,7 +805,7 @@
 </div>
 
 <!-- MAIN APP -->
-<div id="app">
+<div id="app" style="display:flex">
   <header class="app-header">
     <div>
       <div class="app-header-logo">🍽️ Pedidos</div>
@@ -1031,6 +1031,7 @@ function loadDemo() {
 
 // ─── APP START ────────────────────────────────────────────
 function startApp() {
+  // Always show app, never go back to setup automatically
   document.getElementById('setup-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
 
@@ -1043,7 +1044,7 @@ function startApp() {
   } else {
     fetchCodaOrders();
     if (refreshInterval) clearInterval(refreshInterval);
-    refreshInterval = setInterval(fetchCodaOrders, 2 * 60 * 1000); // 2 min
+    refreshInterval = setInterval(fetchCodaOrders, 2 * 60 * 1000);
   }
 
   checkAlerts();
@@ -1068,8 +1069,9 @@ async function fetchCodaOrders() {
     });
 
     if (!res.ok) {
-      const err = await res.json();
-      updateRefreshLabel(`❌ Erro: ${err.message || res.status}`);
+      let msg = res.status;
+      try { const err = await res.json(); msg = err.message || msg; } catch(e) {}
+      updateRefreshLabel(`❌ Erro Coda: ${msg}`);
       return;
     }
 
@@ -1079,7 +1081,8 @@ async function fetchCodaOrders() {
     checkAlerts();
     updateRefreshLabel('✓ Atualizado às ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }));
   } catch(e) {
-    updateRefreshLabel('❌ Erro de conexão: ' + e.message);
+    updateRefreshLabel('❌ Sem conexão — tentando em 2 min');
+    console.warn('fetchCodaOrders erro:', e);
   }
 }
 
@@ -1657,26 +1660,26 @@ function updateRefreshLabel(txt) {
 }
 
 // ─── BOOT ─────────────────────────────────────────────────
-// Configuração fixa — conecta automaticamente ao abrir
-config = {
-  token: 'c2df9327-a40c-4716-9f59-c40620d691ef',
-  docId: 'Wq8ktEEI3N',
-  tableId: 'Pedidos Base',
-  cols: {
-    nome: 'Cliente',
-    data: 'Data e Hora',
-    tipo: 'Entrega/Retirada',
-    pedido: 'Nota',
-    telefone: 'Número',
-    valor: 'Valor Total',
-    status: 'Entregue',
-    statusValor: 'Entregue',
-  },
-  alertHours: 1
-};
-
-isDemo = false;
-startApp();
+document.addEventListener('DOMContentLoaded', function() {
+  config = {
+    token: 'c2df9327-a40c-4716-9f59-c40620d691ef',
+    docId: 'Wq8ktEEI3N',
+    tableId: 'Pedidos Base',
+    cols: {
+      nome: 'Cliente',
+      data: 'Data e Hora',
+      tipo: 'Entrega/Retirada',
+      pedido: 'Nota',
+      telefone: 'Número',
+      valor: 'Valor Total',
+      status: 'Status',
+      statusValor: 'Entregue',
+    },
+    alertHours: 1
+  };
+  isDemo = false;
+  startApp();
+});
 
 // ─── PWA — Service Worker ──────────────────────────────────
 if ('serviceWorker' in navigator) {
