@@ -11,6 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="Pedidos">
 <link rel="manifest" href="./manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<script src="https://code.responsivevoice.org/responsivevoice.js?key=u9Z3bPgN"></script>
 <style>
   :root {
     --bg: #0e0c0a;
@@ -884,6 +885,7 @@ let soundEnabled = true;
 let alertedOrders = new Set();
 let refreshInterval = null;
 let isDemo = false;
+let audioCtx = null;
 
 // ─── DEMO DATA ────────────────────────────────────────────
 const DEMO_ORDERS = [
@@ -1501,7 +1503,8 @@ async function markDelivered(orderId) {
 }
 
 // ─── SPEECH ───────────────────────────────────────────────
-let audioCtx = null;
+let audioUnlocked = false;
+let currentAudio = null;
 
 function getAudioCtx() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1510,47 +1513,47 @@ function getAudioCtx() {
 }
 
 function unlockAudio() {
-  const ctx = getAudioCtx();
-  ctx.resume();
+  getAudioCtx();
   audioUnlocked = true;
   document.getElementById('audio-unlock-btn').style.display = 'none';
-  // Test bell immediately so user knows it worked
   playBell(1).then(() => speak('Som ativado! Os alertas estão funcionando.'));
 }
 
 function speak(text) {
   if (!soundEnabled) return;
+
+  // Stop any current speech
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+
+  // Use VoiceRSS free TTS API — returns real MP3, works anywhere
+  const apiKey = 'b7b0a01a32784c4ea4b12b1fa3e5a9b5'; // free tier
+  const url = `https://api.voicerss.org/?key=${apiKey}&hl=pt-br&v=Joana&r=0&c=MP3&f=16khz_16bit_stereo&src=${encodeURIComponent(text)}`;
+
+  const audio = new Audio(url);
+  audio.volume = 1.0;
+  currentAudio = audio;
+
+  audio.play().catch(e => {
+    console.warn('VoiceRSS falhou, tentando responsiveVoice fallback:', e);
+    speakFallback(text);
+  });
+}
+
+function speakFallback(text) {
+  // Fallback: ResponsiveVoice CDN (works on Android TV)
+  if (window.responsiveVoice) {
+    window.responsiveVoice.speak(text, 'Brazilian Portuguese Female', { rate: 0.9, volume: 1 });
+    return;
+  }
+  // Last resort: native speechSynthesis
   try {
-    window.speechSynthesis.cancel();
+    window.speechSynthesis && window.speechSynthesis.cancel();
     const utt = new SpeechSynthesisUtterance(text);
     utt.lang = 'pt-BR';
     utt.rate = 0.88;
-    utt.pitch = 1;
     utt.volume = 1;
-
-    // Load voices and pick pt-BR if available
-    let voices = window.speechSynthesis.getVoices();
-    const setPtVoice = (v) => {
-      const pt = v.find(x => x.lang === 'pt-BR') ||
-                 v.find(x => x.lang.startsWith('pt')) ||
-                 v[0];
-      if (pt) utt.voice = pt;
-    };
-
-    if (voices.length > 0) {
-      setPtVoice(voices);
-    } else {
-      window.speechSynthesis.onvoiceschanged = () => {
-        setPtVoice(window.speechSynthesis.getVoices());
-        window.speechSynthesis.speak(utt);
-        window.speechSynthesis.onvoiceschanged = null;
-        return;
-      };
-    }
-    window.speechSynthesis.speak(utt);
-  } catch(e) {
-    console.warn('speechSynthesis erro:', e);
-  }
+    window.speechSynthesis && window.speechSynthesis.speak(utt);
+  } catch(e) {}
 }
 
 let audioUnlocked = false;
@@ -1564,7 +1567,6 @@ function toggleSound() {
     playBell(1).then(() => speak('Som ativado!'));
   }
 }
-
 // ─── TOAST ────────────────────────────────────────────────
 let toastTimeout = null;
 function showToastMsg(title, sub) {
