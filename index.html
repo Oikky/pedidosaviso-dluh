@@ -943,6 +943,8 @@ function saveConfig() {
       pedido: document.getElementById('col-pedido').value.trim() || 'Pedido',
       telefone: document.getElementById('col-telefone').value.trim() || 'Telefone',
       valor: document.getElementById('col-valor').value.trim() || 'Valor Total',
+      status: document.getElementById('col-status').value.trim() || 'Status',
+      statusValor: document.getElementById('col-status-valor').value.trim() || 'Entregue',
     },
     alertHours: parseFloat(document.getElementById('alert-hours').value)
   };
@@ -1060,7 +1062,8 @@ function parseCodaRows(rows) {
       tipo: v[c.tipo] || 'Retirada',
       datetime: dt,
       pedido: v[c.pedido] || '',
-      valor: v[c.valor] || ''
+      valor: v[c.valor] || '',
+      entregue: v[c.status] === (c.statusValor || 'Entregue')
     };
   }).filter(o => {
     if (!o.datetime || isNaN(o.datetime)) return false;
@@ -1074,12 +1077,14 @@ function renderAll() {
   const now = new Date();
   const filtered = filterOrders();
 
-  // Featured = first upcoming order
-  const upcoming = orders.filter(o => o.datetime >= now);
-  renderFeatured(upcoming[0] || null);
+  // Featured = first upcoming OR most recently late undelivered order
+  const upcoming = orders.filter(o => !o.entregue && o.datetime >= now);
+  const lateUndelivered = orders.filter(o => !o.entregue && o.datetime < now).sort((a,b) => b.datetime - a.datetime);
+  const featured = upcoming[0] || lateUndelivered[0] || null;
+  renderFeatured(featured);
 
   // Queue = all today except featured
-  renderQueue(filtered, upcoming[0]);
+  renderQueue(filtered, featured);
 }
 
 function filterOrders() {
@@ -1104,11 +1109,9 @@ function renderFeatured(order) {
 
   const now = new Date();
   const minsLeft = Math.round((order.datetime - now) / 60000);
-  const isUrgent = minsLeft <= 30;
-  const timerClass = isUrgent ? 'urgent' : '';
 
   const isLate = minsLeft < 0;
-  const timerClass = (isLate || minsLeft <= 5) ? 'urgent' : minsLeft <= 15 ? 'urgent' : '';
+  const timerClass = (isLate || minsLeft <= 15) ? 'urgent' : '';
 
   const timerText = isLate
     ? 'ATRASADO ' + Math.abs(minsLeft) + 'min'
