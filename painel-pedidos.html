@@ -316,37 +316,34 @@ async function playBell(intensity) {
   return new Promise(r => setTimeout(r, rings * 550 + 500));
 }
 
+const TTS_PROXY = 'https://tts-pedidos.onrender.com';
+
 let speakQueue = Promise.resolve();
+let isSpeaking = false;
 
 function speak(text) {
   if (!soundOn) return;
-  speakQueue = speakQueue.then(() => new Promise(resolve => {
-    try {
-      if (!window.speechSynthesis) { resolve(); return; }
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'pt-BR';
-      u.rate = 0.88;
-      u.volume = 1;
-      u.onend = resolve;
-      u.onerror = resolve;
+  // Encadeia as falas — uma por vez, sem sobreposição
+  speakQueue = speakQueue.then(() => speakProxy(text));
+}
 
-      const trySpeak = () => {
-        const voices = window.speechSynthesis.getVoices();
-        const pt = voices.find(v => v.lang === 'pt-BR')
-                || voices.find(v => v.lang.startsWith('pt'))
-                || voices[0];
-        if (pt) u.voice = pt;
-        window.speechSynthesis.speak(u);
-        // Watchdog: se não começar em 2s, resolve mesmo assim
-        setTimeout(resolve, 2000);
-      };
-
-      const voices = window.speechSynthesis.getVoices();
-      if (voices.length > 0) { trySpeak(); }
-      else { window.speechSynthesis.onvoiceschanged = () => { trySpeak(); }; }
-    } catch(e) { resolve(); }
-  }));
+async function speakProxy(text) {
+  if (isSpeaking) return;
+  isSpeaking = true;
+  try {
+    const url = `${TTS_PROXY}/tts?text=${encodeURIComponent(text)}`;
+    const audio = new Audio(url);
+    audio.volume = 1.0;
+    await new Promise((resolve) => {
+      audio.onended = resolve;
+      audio.onerror = (e) => { console.warn('TTS erro:', e); resolve(); };
+      audio.play().catch(e => { console.warn('play() erro:', e); resolve(); });
+    });
+  } catch(e) {
+    console.warn('speakProxy erro:', e);
+  } finally {
+    isSpeaking = false;
+  }
 }
 
 function testarVoz() {
