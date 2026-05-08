@@ -1500,63 +1500,69 @@ async function markDelivered(orderId) {
   renderAll();
 }
 
-// ─── SPEECH — Google TTS (funciona em Android TV) ─────────
-let audioUnlocked = false;
-const audioCtxUnlock = new (window.AudioContext || window.webkitAudioContext)();
+// ─── SPEECH ───────────────────────────────────────────────
+let audioCtx = null;
 
-// Unlock audio on first interaction (required by Android TV)
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
 function unlockAudio() {
-  if (audioUnlocked) return;
+  const ctx = getAudioCtx();
+  ctx.resume();
   audioUnlocked = true;
-  // Play silent buffer to unlock
-  const buf = audioCtxUnlock.createBuffer(1, 1, 22050);
-  const src = audioCtxUnlock.createBufferSource();
-  src.buffer = buf;
-  src.connect(audioCtxUnlock.destination);
-  src.start(0);
   document.getElementById('audio-unlock-btn').style.display = 'none';
-  showToastMsg('🔊 Áudio ativado!', 'Os alertas sonoros estão funcionando');
+  // Test bell immediately so user knows it worked
+  playBell(1).then(() => speak('Som ativado! Os alertas estão funcionando.'));
 }
 
-async function speak(text) {
+function speak(text) {
   if (!soundEnabled) return;
-
-  // Try Google TTS first (works on Android TV WebView)
   try {
-    const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=pt-BR&client=tw-ob&q=${encodeURIComponent(text)}`;
-    const audio = new Audio(url);
-    audio.volume = 1.0;
-    await audio.play();
-    return;
-  } catch(e) {
-    console.warn('Google TTS falhou, tentando speechSynthesis:', e);
-  }
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.lang = 'pt-BR';
+    utt.rate = 0.88;
+    utt.pitch = 1;
+    utt.volume = 1;
 
-  // Fallback: speechSynthesis
-  try {
-    if (window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-      const utt = new SpeechSynthesisUtterance(text);
-      utt.lang = 'pt-BR';
-      utt.rate = 0.9;
-      utt.pitch = 1;
-      utt.volume = 1;
-      const voices = window.speechSynthesis.getVoices();
-      const ptVoice = voices.find(v => v.lang.startsWith('pt'));
-      if (ptVoice) utt.voice = ptVoice;
-      window.speechSynthesis.speak(utt);
+    // Load voices and pick pt-BR if available
+    let voices = window.speechSynthesis.getVoices();
+    const setPtVoice = (v) => {
+      const pt = v.find(x => x.lang === 'pt-BR') ||
+                 v.find(x => x.lang.startsWith('pt')) ||
+                 v[0];
+      if (pt) utt.voice = pt;
+    };
+
+    if (voices.length > 0) {
+      setPtVoice(voices);
+    } else {
+      window.speechSynthesis.onvoiceschanged = () => {
+        setPtVoice(window.speechSynthesis.getVoices());
+        window.speechSynthesis.speak(utt);
+        window.speechSynthesis.onvoiceschanged = null;
+        return;
+      };
     }
+    window.speechSynthesis.speak(utt);
   } catch(e) {
-    console.warn('speechSynthesis também falhou:', e);
+    console.warn('speechSynthesis erro:', e);
   }
 }
+
+let audioUnlocked = false;
 
 function toggleSound() {
   soundEnabled = !soundEnabled;
   document.getElementById('sound-dot').className = 'sound-dot' + (soundEnabled ? '' : ' off');
   document.getElementById('sound-label').textContent = soundEnabled ? 'Som' : 'Mudo';
-
-  if (soundEnabled) speak('Som ativado!');
+  if (soundEnabled) {
+    getAudioCtx();
+    playBell(1).then(() => speak('Som ativado!'));
+  }
 }
 
 // ─── TOAST ────────────────────────────────────────────────
@@ -1656,9 +1662,20 @@ startApp();
 // ─── PWA — Service Worker ──────────────────────────────────
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js')
-    .then(() => console.log('✅ Service Worker registrado — atualizações automáticas ativas'))
+    .then(() => console.log('✅ Service Worker registrado'))
     .catch(e => console.warn('SW não registrado:', e));
 }
+
+// Unlock audio on first ANY interaction with the page
+document.addEventListener('click', function onFirstClick() {
+  if (!audioUnlocked) unlockAudio();
+  document.removeEventListener('click', onFirstClick);
+}, { once: true });
+
+document.addEventListener('keydown', function onFirstKey() {
+  if (!audioUnlocked) unlockAudio();
+  document.removeEventListener('keydown', onFirstKey);
+}, { once: true });
 
 </script>
 </body>
