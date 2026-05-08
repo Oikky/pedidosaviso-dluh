@@ -200,6 +200,7 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
       <div class="sdot" id="sdot"></div>
       <span id="slabel">Som</span>
     </button>
+    <button class="btn-ic" onclick="testarVoz()" title="Testar voz">🗣️</button>
     <button class="btn-ic" onclick="fetchOrders()" title="Atualizar">⟳</button>
   </header>
 
@@ -315,18 +316,41 @@ async function playBell(intensity) {
   return new Promise(r => setTimeout(r, rings * 550 + 500));
 }
 
+let speakQueue = Promise.resolve();
+
 function speak(text) {
   if (!soundOn) return;
-  try {
-    if (!window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'pt-BR'; u.rate = 0.88; u.volume = 1;
-    const voices = window.speechSynthesis.getVoices();
-    const pt = voices.find(v => v.lang === 'pt-BR') || voices.find(v => v.lang.startsWith('pt'));
-    if (pt) u.voice = pt;
-    window.speechSynthesis.speak(u);
-  } catch(e) {}
+  speakQueue = speakQueue.then(() => new Promise(resolve => {
+    try {
+      if (!window.speechSynthesis) { resolve(); return; }
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'pt-BR';
+      u.rate = 0.88;
+      u.volume = 1;
+      u.onend = resolve;
+      u.onerror = resolve;
+
+      const trySpeak = () => {
+        const voices = window.speechSynthesis.getVoices();
+        const pt = voices.find(v => v.lang === 'pt-BR')
+                || voices.find(v => v.lang.startsWith('pt'))
+                || voices[0];
+        if (pt) u.voice = pt;
+        window.speechSynthesis.speak(u);
+        // Watchdog: se não começar em 2s, resolve mesmo assim
+        setTimeout(resolve, 2000);
+      };
+
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length > 0) { trySpeak(); }
+      else { window.speechSynthesis.onvoiceschanged = () => { trySpeak(); }; }
+    } catch(e) { resolve(); }
+  }));
+}
+
+function testarVoz() {
+  playBell(1).then(() => speak('Teste de voz. Painel de pedidos funcionando!'));
 }
 
 function toggleSound() {
