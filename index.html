@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍽️ Painel de Pedidos</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0c0a;
+    --surface: #1a1714;
+    --surface2: #231f1b;
+    --border: #2e2925;
+    --accent: #f97316;
+    --accent2: #fbbf24;
+    --accent-soft: rgba(249,115,22,0.12);
+    --green: #22c55e;
+    --green-soft: rgba(34,197,94,0.12);
+    --blue: #60a5fa;
+    --blue-soft: rgba(96,165,250,0.12);
+    --red: #f87171;
+    --red-soft: rgba(248,113,113,0.12);
+    --text: #f5f0ea;
+    --text2: #a89880;
+    --text3: #6b5f52;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── SETUP SCREEN ── */
+  #setup-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 24px;
+    background: radial-gradient(ellipse at 50% 0%, rgba(249,115,22,0.15) 0%, transparent 70%);
+  }
+
+  .setup-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px 36px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+  }
+
+  .setup-logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+
+  .setup-subtitle {
+    color: var(--text2);
+    font-size: 0.9rem;
+    margin-bottom: 32px;
+  }
+
+  .setup-field {
+    margin-bottom: 18px;
+  }
+
+  .setup-field label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+
+  .setup-field input, .setup-field select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .setup-field input:focus, .setup-field select:focus {
+    border-color: var(--accent);
+  }
+
+  .setup-field .hint {
+    font-size: 0.75rem;
+    color: var(--text3);
+    margin-top: 6px;
+  }
+
+  .setup-field .hint a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .btn-primary {
+    width: 100%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 14px;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    margin-top: 8px;
+  }
+
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-primary:active { transform: scale(0.98); }
+
+  .setup-divider {
+    text-align: center;
+    color: var(--text3);
+    font-size: 0.8rem;
+    margin: 20px 0;
+    position: relative;
+  }
+
+  .setup-divider::before, .setup-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 40%;
+    height: 1px;
+    background: var(--border);
+  }
+  .setup-divider::before { left: 0; }
+  .setup-divider::after { right: 0; }
+
+  .btn-demo {
+    width: 100%;
+    background: transparent;
+    color: var(--text2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-demo:hover {
+    border-color: var(--text2);
+    color: var(--text);
+  }
+
+  /* ── MAIN APP ── */
+  #app { display: none; flex-direction: column; min-height: 100vh; }
+
+  /* Header */
+  .app-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .app-header-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--accent);
+    flex: 1;
+  }
+
+  .header-clock {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.05em;
+  }
+
+  .header-date {
+    font-size: 0.75rem;
+    color: var(--text2);
+    text-align: right;
+  }
+
+  .btn-icon {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text2);
+    cursor: pointer;
+    padding: 8px 10px;
+    font-size: 1rem;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-icon:hover { color: var(--text); border-color: var(--text2); }
+  .btn-icon.active { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+
+  /* ── FEATURED ORDER ── */
+  .featured-section {
+    padding: 16px 16px 8px;
+  }
+
+  .section-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text3);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .featured-card {
+    background: var(--surface);
+    border: 1.5px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 0;
+    overflow: hidden;
+    box-shadow: 0 0 40px rgba(249,115,22,0.15), 0 4px 20px rgba(0,0,0,0.3);
+    animation: pulseGlow 3s ease-in-out infinite;
+  }
+
+  @keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 30px rgba(249,115,22,0.15), 0 4px 20px rgba(0,0,0,0.3); }
+    50% { box-shadow: 0 0 50px rgba(249,115,22,0.3), 0 4px 20px rgba(0,0,0,0.3); }
+  }
+
+  .featured-header {
+    background: linear-gradient(135deg, var(--accent) 0%, #ea580c 100%);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .featured-badge {
+    background: rgba(255,255,255,0.2);
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #fff;
+  }
+
+  .featured-name {
+    flex: 1;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #fff;
+  }
+
+  .featured-tipo {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.9);
+  }
+
+  .featured-body {
+    padding: 14px 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .featured-info-box {
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+  }
+
+  .featured-info-label {
+    font-size: 0.68rem;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 3px;
+  }
+
+  .featured-info-value {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text);
+  }
+
+  .featured-info-value.highlight {
+    color: var(--accent);
+    font-size: 1.1rem;
+  }
+
+  .timer-box {
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .timer-label { font-size: 0.75rem; color: var(--accent); font-weight: 500; }
+
+  .timer-value {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.4rem;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+
+  .timer-value.urgent { color: var(--red); animation: blink 1s step-end infinite; }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  .featured-items {
+    padding: 0 16px 16px;
+  }
+
+  .items-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text2);
+    font-size: 0.8rem;
+    cursor: pointer;
+    user-select: none;
+    margin-bottom: 10px;
+  }
+
+  .items-toggle svg { transition: transform 0.2s; }
+  .items-toggle.open svg { transform: rotate(180deg); }
+
+  .items-list { display: none; }
+  .items-list.open { display: block; }
+
+  .item-category {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent2);
+    margin: 10px 0 4px;
+  }
+
+  .item-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .item-qty {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--accent);
+    min-width: 28px;
+  }
+
+  .item-name { font-size: 0.85rem; color: var(--text2); flex: 1; }
+
+  .featured-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .featured-phone {
+    font-size: 0.82rem;
+    color: var(--text2);
+  }
+
+  .featured-total {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--green);
+  }
+
+  /* ── QUEUE ── */
+  .queue-section {
+    padding: 8px 16px 16px;
+    flex: 1;
+  }
+
+  .queue-scroll {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .queue-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .queue-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--border);
+    transition: background 0.2s;
+  }
+
+  .queue-card:hover { border-color: var(--text3); }
+  .queue-card:hover::before { background: var(--accent); }
+
+  .queue-card.entrega::before { background: var(--blue); }
+  .queue-card.retirada::before { background: var(--green); }
+
+  .queue-card-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .queue-pos {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--text3);
+    min-width: 20px;
+  }
+
+  .queue-name {
+    flex: 1;
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .queue-time {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--text2);
+  }
+
+  .queue-card-bottom {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-left: 28px;
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border-radius: 20px;
+    padding: 2px 8px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .tag.retirada { background: var(--green-soft); color: var(--green); }
+  .tag.entrega { background: var(--blue-soft); color: var(--blue); }
+  .tag.urgente { background: var(--red-soft); color: var(--red); }
+
+  .queue-date { font-size: 0.75rem; color: var(--text3); }
+
+  .queue-countdown {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: var(--text3);
+    font-family: 'Syne', sans-serif;
+  }
+
+  .queue-countdown.soon { color: var(--accent); font-weight: 700; }
+  .queue-countdown.urgent { color: var(--red); font-weight: 700; }
+
+  /* expandable details */
+  .queue-details {
+    display: none;
+    padding-top: 10px;
+    margin-top: 10px;
+    border-top: 1px solid var(--border);
+    padding-left: 28px;
+  }
+
+  .queue-details.open { display: block; }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text3);
+  }
+
+  .empty-state-icon { font-size: 2.5rem; margin-bottom: 12px; }
+  .empty-state-text { font-size: 0.9rem; line-height: 1.6; }
+
+  /* Toast / Alert */
+  .toast-container {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 999;
+    pointer-events: none;
+  }
+
+  .toast {
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    color: #fff;
+    padding: 16px 20px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transform: translateY(-100%);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: all;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+
+  .toast.show { transform: translateY(0); }
+  .toast-emoji { font-size: 1.4rem; }
+  .toast-body { flex: 1; }
+  .toast-sub { font-family: 'DM Sans', sans-serif; font-weight: 400; font-size: 0.82rem; opacity: 0.9; }
+
+  /* Filter bar */
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    padding: 0 16px 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .filter-bar::-webkit-scrollbar { display: none; }
+
+  .filter-btn {
+    flex-shrink: 0;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text2);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .filter-btn.active {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* Refresh indicator */
+  .refresh-indicator {
+    text-align: center;
+    padding: 8px;
+    font-size: 0.72rem;
+    color: var(--text3);
+  }
+
+  .spinning { animation: spin 1s linear infinite; display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Responsive */
+  @media (min-width: 600px) {
+    .featured-body { grid-template-columns: 1fr 1fr 1fr; }
+    .timer-box { grid-column: unset; }
+  }
+
+  @media (min-width: 900px) {
+    #app { flex-direction: row; flex-wrap: wrap; }
+    .app-header { width: 100%; }
+    .featured-section { width: 400px; flex-shrink: 0; padding: 20px; }
+    .queue-section { flex: 1; padding: 20px; border-left: 1px solid var(--border); min-height: calc(100vh - 60px); }
+    .queue-scroll { max-height: calc(100vh - 140px); overflow-y: auto; }
+  }
+
+  /* Scroll */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  /* Sound toggle indicator */
+  .sound-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+  .sound-dot.off { background: var(--text3); animation: none; }
+  @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.4)} }
+
+  .no-featured {
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 32px 20px;
+    text-align: center;
+    color: var(--text3);
+    font-size: 0.9rem;
+  }
+</style>
+</head>
+<body>
+
+<!-- SETUP SCREEN -->
+<div id="setup-screen">
+  <div class="setup-card">
+    <div class="setup-logo">🍽️ Painel de Pedidos</div>
+    <div class="setup-subtitle">Conecte com seu Coda para começar</div>
+
+    <div class="setup-field">
+      <label>API Token do Coda</label>
+      <input type="password" id="coda-token" placeholder="Seu token aqui...">
+      <div class="hint">
+        Acesse <a href="https://coda.io/account" target="_blank">coda.io/account</a> → API Settings → Generate API Token
+      </div>
+    </div>
+
+    <div class="setup-field">
+      <label>ID do Documento</label>
+      <input type="text" id="coda-doc-id" placeholder="Ex: abc123XYZ">
+      <div class="hint">
+        Na URL do Coda: coda.io/d/<strong>ID-AQUI</strong>/...
+      </div>
+    </div>
+
+    <div class="setup-field">
+      <label>ID ou Nome da Tabela de Pedidos</label>
+      <input type="text" id="coda-table-id" placeholder="Ex: Pedidos ou grid-ABC123">
+      <div class="hint">Nome exato da tabela no Coda (ex: "Pedidos")</div>
+    </div>
+
+    <div class="setup-field">
+      <label>Coluna: Nome do Cliente</label>
+      <input type="text" id="col-nome" placeholder="Ex: Cliente" value="Cliente">
+    </div>
+
+    <div class="setup-field">
+      <label>Coluna: Data e Hora</label>
+      <input type="text" id="col-data" placeholder="Ex: Data de Entrega" value="Data de Entrega">
+    </div>
+
+    <div class="setup-field">
+      <label>Coluna: Tipo (Entrega / Retirada)</label>
+      <input type="text" id="col-tipo" placeholder="Ex: Tipo" value="Tipo">
+    </div>
+
+    <div class="setup-field">
+      <label>Coluna: Detalhes do Pedido</label>
+      <input type="text" id="col-pedido" placeholder="Ex: Pedido" value="Pedido">
+    </div>
+
+    <div class="setup-field">
+      <label>Coluna: Telefone</label>
+      <input type="text" id="col-telefone" placeholder="Ex: Telefone" value="Telefone">
+    </div>
+
+    <div class="setup-field">
+      <label>Coluna: Valor Total</label>
+      <input type="text" id="col-valor" placeholder="Ex: Valor Total" value="Valor Total">
+    </div>
+
+    <div class="setup-field">
+      <label>Avisar com quantas horas de antecedência?</label>
+      <select id="alert-hours">
+        <option value="1" selected>1 hora antes</option>
+        <option value="2">2 horas antes</option>
+        <option value="3">3 horas antes</option>
+        <option value="0.5">30 minutos antes</option>
+      </select>
+    </div>
+
+    <button class="btn-primary" onclick="saveConfig()">🔗 Conectar ao Coda</button>
+
+    <div class="setup-divider">ou</div>
+    <button class="btn-demo" onclick="loadDemo()">👀 Ver demonstração com pedidos de exemplo</button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <header class="app-header">
+    <div>
+      <div class="app-header-logo">🍽️ Pedidos</div>
+    </div>
+    <div style="flex:1"></div>
+    <div style="text-align:right">
+      <div class="header-clock" id="clock">00:00</div>
+      <div class="header-date" id="date-display"></div>
+    </div>
+    <button class="btn-icon" id="sound-btn" onclick="toggleSound()" title="Som">
+      <div class="sound-dot" id="sound-dot"></div>
+      <span id="sound-label">Som</span>
+    </button>
+    <button class="btn-icon" onclick="refreshOrders()" title="Atualizar">⟳</button>
+    <button class="btn-icon" onclick="showSetup()" title="Configurações">⚙</button>
+  </header>
+
+  <!-- Featured -->
+  <div class="featured-section">
+    <div class="section-label">▶ Próximo a fazer</div>
+    <div id="featured-container">
+      <div class="no-featured">Nenhum pedido para hoje ainda 🎉</div>
+    </div>
+  </div>
+
+  <!-- Queue -->
+  <div class="queue-section">
+    <div class="section-label">Fila do dia</div>
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="setFilter('todos', this)">Todos</button>
+      <button class="filter-btn" onclick="setFilter('retirada', this)">🛍️ Retirada</button>
+      <button class="filter-btn" onclick="setFilter('entrega', this)">🛵 Entrega</button>
+      <button class="filter-btn" onclick="setFilter('urgente', this)">🔥 Urgente</button>
+    </div>
+    <div id="queue-container" class="queue-scroll">
+      <div class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <div class="empty-state-text">Nenhum pedido na fila hoje.</div>
+      </div>
+    </div>
+    <div class="refresh-indicator" id="refresh-indicator">—</div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container">
+  <div class="toast" id="toast">
+    <div class="toast-emoji">🔔</div>
+    <div class="toast-body">
+      <div id="toast-title">Alerta de Pedido</div>
+      <div class="toast-sub" id="toast-sub"></div>
+    </div>
+    <button style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;padding:0 4px" onclick="hideToast()">×</button>
+  </div>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────
+let config = {};
+let orders = [];
+let currentFilter = 'todos';
+let soundEnabled = true;
+let alertedOrders = new Set();
+let refreshInterval = null;
+let isDemo = false;
+
+// ─── DEMO DATA ────────────────────────────────────────────
+const DEMO_ORDERS = [
+  {
+    id: '1',
+    nome: 'Francielly Rainha Martins',
+    telefone: '(38) 99100-7725',
+    tipo: 'Retirada',
+    datetime: todayAt(16, 0),
+    pedido: 'Salgado Frito:\n50 Pastel de Frango com Catupiry\n25 Pastel pipoca de carne moída\n50 Coxinha\nAssado:\n25 Tortinha de frango com catupiry\nDoce:\n50 Leite em pó\nBolo:\n1 🍰Bolo aro 20\nRecheio: Creme de Moça com Geleia de Morango\ndoce de leite\nSalgado Especial:\n50 Barquete',
+    valor: 'R$391,25'
+  },
+  {
+    id: '2',
+    nome: 'Carlos Eduardo Silva',
+    telefone: '(38) 98765-4321',
+    tipo: 'Entrega',
+    datetime: todayAt(18, 30),
+    pedido: 'Salgado Frito:\n30 Coxinha\n20 Kibe\nDoce:\n25 Brigadeiro gourmet',
+    valor: 'R$185,00'
+  },
+  {
+    id: '3',
+    nome: 'Maria Fernanda Costa',
+    telefone: '(38) 99234-5678',
+    tipo: 'Retirada',
+    datetime: todayAt(14, 0),
+    pedido: 'Assado:\n50 Tortinha de palmito\nDoce:\n30 Trufa de chocolate',
+    valor: 'R$220,50'
+  },
+  {
+    id: '4',
+    nome: 'João Batista Nunes',
+    telefone: '(38) 97654-3210',
+    tipo: 'Entrega',
+    datetime: todayAt(20, 0),
+    pedido: 'Salgado Frito:\n100 Coxinha\n50 Pastel de carne\nBolo:\n2 Bolo aro 15',
+    valor: 'R$540,00'
+  }
+];
+
+function todayAt(h, m) {
+  const d = new Date();
+  d.setHours(h, m, 0, 0);
+  return d;
+}
+
+// ─── CLOCK ────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  document.getElementById('date-display').textContent =
+    now.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' });
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ─── CONFIG ───────────────────────────────────────────────
+function saveConfig() {
+  const token = document.getElementById('coda-token').value.trim();
+  const docId = document.getElementById('coda-doc-id').value.trim();
+  const tableId = document.getElementById('coda-table-id').value.trim();
+
+  if (!token || !docId || !tableId) {
+    alert('Preencha Token, ID do Documento e ID/Nome da Tabela.');
+    return;
+  }
+
+  config = {
+    token, docId, tableId,
+    cols: {
+      nome: document.getElementById('col-nome').value.trim() || 'Cliente',
+      data: document.getElementById('col-data').value.trim() || 'Data de Entrega',
+      tipo: document.getElementById('col-tipo').value.trim() || 'Tipo',
+      pedido: document.getElementById('col-pedido').value.trim() || 'Pedido',
+      telefone: document.getElementById('col-telefone').value.trim() || 'Telefone',
+      valor: document.getElementById('col-valor').value.trim() || 'Valor Total',
+    },
+    alertHours: parseFloat(document.getElementById('alert-hours').value)
+  };
+
+  localStorage.setItem('pedidos_config', JSON.stringify(config));
+  isDemo = false;
+  startApp();
+}
+
+function loadSavedConfig() {
+  try {
+    const saved = localStorage.getItem('pedidos_config');
+    if (saved) {
+      config = JSON.parse(saved);
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
+function showSetup() {
+  document.getElementById('setup-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  if (refreshInterval) { clearInterval(refreshInterval); refreshInterval = null; }
+}
+
+function loadDemo() {
+  isDemo = true;
+  config = { alertHours: 1 };
+  startApp();
+}
+
+// ─── APP START ────────────────────────────────────────────
+function startApp() {
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+
+  if (isDemo) {
+    orders = DEMO_ORDERS;
+    renderAll();
+    setInterval(checkAlerts, 30000);
+    setInterval(renderAll, 60000);
+    updateRefreshLabel('Modo demonstração');
+  } else {
+    fetchCodaOrders();
+    if (refreshInterval) clearInterval(refreshInterval);
+    refreshInterval = setInterval(fetchCodaOrders, 2 * 60 * 1000); // 2 min
+  }
+
+  checkAlerts();
+}
+
+function refreshOrders() {
+  if (isDemo) {
+    renderAll();
+    showToastMsg('🔄 Atualizado!', 'Modo demonstração ativo');
+    return;
+  }
+  fetchCodaOrders();
+}
+
+// ─── CODA API ─────────────────────────────────────────────
+async function fetchCodaOrders() {
+  updateRefreshLabel('⟳ Atualizando...');
+  try {
+    const url = `https://coda.io/apis/v1/docs/${config.docId}/tables/${encodeURIComponent(config.tableId)}/rows?useColumnNames=true&limit=200`;
+    const res = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${config.token}` }
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      updateRefreshLabel(`❌ Erro: ${err.message || res.status}`);
+      return;
+    }
+
+    const data = await res.json();
+    orders = parseCodaRows(data.items || []);
+    renderAll();
+    checkAlerts();
+    updateRefreshLabel('✓ Atualizado às ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }));
+  } catch(e) {
+    updateRefreshLabel('❌ Erro de conexão: ' + e.message);
+  }
+}
+
+function parseCodaRows(rows) {
+  const c = config.cols;
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  return rows.map((row, i) => {
+    const v = row.values || {};
+    const dtRaw = v[c.data] || '';
+    let dt = null;
+
+    // Try to parse datetime
+    if (dtRaw) {
+      if (typeof dtRaw === 'number') {
+        dt = new Date(dtRaw);
+      } else {
+        dt = new Date(dtRaw);
+        if (isNaN(dt)) {
+          // Try Brazilian format dd/mm/yyyy hh:mm
+          const m = String(dtRaw).match(/(\d{2})\/(\d{2})\/(\d{4})[,\s]+(\d{2}):(\d{2})/);
+          if (m) dt = new Date(+m[3], +m[2]-1, +m[1], +m[4], +m[5]);
+        }
+      }
+    }
+
+    return {
+      id: row.id || String(i),
+      nome: v[c.nome] || '(sem nome)',
+      telefone: v[c.telefone] || '',
+      tipo: v[c.tipo] || 'Retirada',
+      datetime: dt,
+      pedido: v[c.pedido] || '',
+      valor: v[c.valor] || ''
+    };
+  }).filter(o => {
+    if (!o.datetime || isNaN(o.datetime)) return false;
+    const d = new Date(o.datetime); d.setHours(0,0,0,0);
+    return d.getTime() === today.getTime();
+  }).sort((a, b) => a.datetime - b.datetime);
+}
+
+// ─── RENDER ───────────────────────────────────────────────
+function renderAll() {
+  const now = new Date();
+  const filtered = filterOrders();
+
+  // Featured = first upcoming order
+  const upcoming = orders.filter(o => o.datetime >= now);
+  renderFeatured(upcoming[0] || null);
+
+  // Queue = all today except featured
+  renderQueue(filtered, upcoming[0]);
+}
+
+function filterOrders() {
+  const now = new Date();
+  return orders.filter(o => {
+    if (currentFilter === 'retirada') return o.tipo.toLowerCase().includes('retirada');
+    if (currentFilter === 'entrega') return o.tipo.toLowerCase().includes('entrega');
+    if (currentFilter === 'urgente') {
+      const mins = (o.datetime - now) / 60000;
+      return mins >= 0 && mins <= 60;
+    }
+    return true;
+  });
+}
+
+function renderFeatured(order) {
+  const el = document.getElementById('featured-container');
+  if (!order) {
+    el.innerHTML = `<div class="no-featured">Todos os pedidos do dia foram entregues! 🎉</div>`;
+    return;
+  }
+
+  const now = new Date();
+  const minsLeft = Math.round((order.datetime - now) / 60000);
+  const isUrgent = minsLeft <= 30;
+  const timerClass = isUrgent ? 'urgent' : '';
+
+  const timerText = minsLeft < 0
+    ? 'ATRASADO ' + Math.abs(minsLeft) + 'min'
+    : minsLeft === 0 ? 'AGORA!'
+    : minsLeft >= 60 ? Math.floor(minsLeft/60) + 'h ' + (minsLeft%60) + 'min'
+    : minsLeft + ' min';
+
+  const isEntrega = order.tipo.toLowerCase().includes('entrega');
+  const tipoIcon = isEntrega ? '🛵' : '🛍️';
+  const tipoLabel = isEntrega ? 'Entrega' : 'Retirada';
+
+  const itemsHtml = parseItemsHtml(order.pedido);
+
+  el.innerHTML = `
+    <div class="featured-card">
+      <div class="featured-header">
+        <span class="featured-badge">PRÓXIMO</span>
+        <span class="featured-name">${escHtml(order.nome)}</span>
+        <span class="featured-tipo">${tipoIcon} ${tipoLabel}</span>
+      </div>
+      <div class="featured-body">
+        <div class="featured-info-box">
+          <div class="featured-info-label">Horário</div>
+          <div class="featured-info-value highlight">${fmtTime(order.datetime)}</div>
+        </div>
+        <div class="featured-info-box">
+          <div class="featured-info-label">Data</div>
+          <div class="featured-info-value">${fmtDate(order.datetime)}</div>
+        </div>
+        <div class="featured-info-box">
+          <div class="featured-info-label">Valor</div>
+          <div class="featured-info-value">${escHtml(String(order.valor || '—'))}</div>
+        </div>
+        <div class="timer-box">
+          <div>
+            <div class="timer-label">${minsLeft < 0 ? '⚠️ Atrasado' : '⏳ Tempo restante'}</div>
+          </div>
+          <div class="timer-value ${timerClass}" id="featured-timer">${timerText}</div>
+        </div>
+      </div>
+      <div class="featured-items">
+        <div class="items-toggle" id="items-toggle" onclick="toggleItems(this)">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2,5 7,10 12,5"/></svg>
+          Ver itens do pedido
+        </div>
+        <div class="items-list" id="items-list">
+          ${itemsHtml}
+        </div>
+      </div>
+      <div class="featured-footer">
+        <div class="featured-phone">📞 ${escHtml(order.telefone || '—')}</div>
+        <div class="featured-total">${escHtml(String(order.valor || ''))}</div>
+      </div>
+    </div>
+  `;
+
+  // Live timer
+  startFeaturedTimer(order);
+}
+
+function startFeaturedTimer(order) {
+  if (window._featuredTimerInterval) clearInterval(window._featuredTimerInterval);
+  window._featuredTimerInterval = setInterval(() => {
+    const el = document.getElementById('featured-timer');
+    if (!el) { clearInterval(window._featuredTimerInterval); return; }
+    const now = new Date();
+    const minsLeft = Math.round((order.datetime - now) / 60000);
+    const isUrgent = minsLeft <= 30;
+    el.className = 'timer-value' + (isUrgent ? ' urgent' : '');
+    el.textContent = minsLeft < 0
+      ? 'ATRASADO ' + Math.abs(minsLeft) + 'min'
+      : minsLeft === 0 ? 'AGORA!'
+      : minsLeft >= 60 ? Math.floor(minsLeft/60) + 'h ' + (minsLeft%60) + 'min'
+      : minsLeft + ' min';
+  }, 10000);
+}
+
+function toggleItems(btn) {
+  btn.classList.toggle('open');
+  const list = document.getElementById('items-list');
+  list.classList.toggle('open');
+  btn.querySelector('span') && (btn.querySelector('span').textContent =
+    list.classList.contains('open') ? 'Ocultar itens' : 'Ver itens do pedido');
+}
+
+function renderQueue(filtered, featured) {
+  const el = document.getElementById('queue-container');
+  const queue = filtered.filter(o => !featured || o.id !== featured.id);
+
+  if (queue.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">✅</div><div class="empty-state-text">Sem mais pedidos na fila para hoje.</div></div>`;
+    return;
+  }
+
+  const now = new Date();
+  el.innerHTML = queue.map((o, idx) => {
+    const minsLeft = Math.round((o.datetime - now) / 60000);
+    const isEntrega = o.tipo.toLowerCase().includes('entrega');
+    const tipoClass = isEntrega ? 'entrega' : 'retirada';
+    const tipoLabel = isEntrega ? '🛵 Entrega' : '🛍️ Retirada';
+    const isUrgent = minsLeft >= 0 && minsLeft <= 60;
+    const isSoon = minsLeft >= 0 && minsLeft <= 120;
+
+    let cdText = '', cdClass = '';
+    if (minsLeft < 0) { cdText = 'ATRASADO'; cdClass = 'urgent'; }
+    else if (minsLeft === 0) { cdText = 'AGORA'; cdClass = 'urgent'; }
+    else if (minsLeft >= 60) { cdText = Math.floor(minsLeft/60)+'h'+(minsLeft%60?(' '+minsLeft%60+'min'):''); cdClass = isSoon ? 'soon' : ''; }
+    else { cdText = minsLeft+'min'; cdClass = isUrgent ? 'urgent' : 'soon'; }
+
+    const itemsHtml = parseItemsHtml(o.pedido);
+
+    return `
+      <div class="queue-card ${tipoClass}" onclick="toggleQueueCard(this)">
+        <div class="queue-card-top">
+          <span class="queue-pos">#${idx+1}</span>
+          <span class="queue-name">${escHtml(o.nome)}</span>
+          <span class="queue-time">${fmtTime(o.datetime)}</span>
+        </div>
+        <div class="queue-card-bottom">
+          <span class="tag ${tipoClass}">${tipoLabel}</span>
+          ${isUrgent ? '<span class="tag urgente">🔥 Urgente</span>' : ''}
+          <span class="queue-date">${fmtDate(o.datetime)}</span>
+          <span class="queue-countdown ${cdClass}">${cdText}</span>
+        </div>
+        <div class="queue-details">
+          ${itemsHtml}
+          ${o.telefone ? `<div style="margin-top:8px;font-size:0.8rem;color:var(--text3)">📞 ${escHtml(o.telefone)}</div>` : ''}
+          ${o.valor ? `<div style="font-size:0.85rem;color:var(--green);font-weight:700;margin-top:4px">${escHtml(String(o.valor))}</div>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleQueueCard(el) {
+  const det = el.querySelector('.queue-details');
+  det.classList.toggle('open');
+}
+
+// ─── ALERTS ───────────────────────────────────────────────
+function checkAlerts() {
+  const now = new Date();
+  const alertMs = (config.alertHours || 1) * 60 * 60 * 1000;
+
+  orders.forEach(o => {
+    const diff = o.datetime - now;
+    if (diff > 0 && diff <= alertMs) {
+      const key = `${o.id}_${Math.floor(diff / (5 * 60 * 1000))}`; // alert every 5 min window
+      if (!alertedOrders.has(key)) {
+        alertedOrders.add(key);
+        triggerAlert(o, Math.round(diff / 60000));
+      }
+    }
+  });
+}
+
+setInterval(checkAlerts, 60000);
+
+function triggerAlert(order, minsLeft) {
+  const isEntrega = order.tipo.toLowerCase().includes('entrega');
+  const tipoText = isEntrega ? 'entrega' : 'retirada';
+  const msg = `Pedido de ${order.nome} — ${tipoText} em ${minsLeft} minutos!`;
+
+  showToastMsg('🔔 ' + fmtTime(order.datetime) + ' · ' + (isEntrega ? '🛵 Entrega' : '🛍️ Retirada'), order.nome);
+
+  if (soundEnabled) {
+    speak(`Atenção! Pedido de ${order.nome} para ${tipoText} em ${minsLeft} minutos. Horário: ${fmtTimeSpeak(order.datetime)}.`);
+  }
+
+  renderAll();
+}
+
+// ─── SPEECH ───────────────────────────────────────────────
+function speak(text) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'pt-BR';
+  utt.rate = 0.9;
+  utt.pitch = 1;
+  utt.volume = 1;
+
+  // Prefer pt-BR voice
+  const voices = window.speechSynthesis.getVoices();
+  const ptVoice = voices.find(v => v.lang.startsWith('pt'));
+  if (ptVoice) utt.voice = ptVoice;
+
+  window.speechSynthesis.speak(utt);
+}
+
+window.speechSynthesis && window.speechSynthesis.addEventListener('voiceschanged', () => {});
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  document.getElementById('sound-dot').className = 'sound-dot' + (soundEnabled ? '' : ' off');
+  document.getElementById('sound-label').textContent = soundEnabled ? 'Som' : 'Mudo';
+
+  if (soundEnabled) speak('Som ativado!');
+}
+
+// ─── TOAST ────────────────────────────────────────────────
+let toastTimeout = null;
+function showToastMsg(title, sub) {
+  document.getElementById('toast-title').textContent = title;
+  document.getElementById('toast-sub').textContent = sub;
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  if (toastTimeout) clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(hideToast, 6000);
+}
+
+function hideToast() {
+  document.getElementById('toast').classList.remove('show');
+}
+
+// ─── FILTER ───────────────────────────────────────────────
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAll();
+}
+
+// ─── HELPERS ──────────────────────────────────────────────
+function fmtTime(dt) {
+  if (!dt) return '—';
+  return new Date(dt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
+
+function fmtTimeSpeak(dt) {
+  if (!dt) return '';
+  return new Date(dt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }).replace(':', ' horas e ') + ' minutos';
+}
+
+function fmtDate(dt) {
+  if (!dt) return '—';
+  return new Date(dt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function parseItemsHtml(pedidoText) {
+  if (!pedidoText) return '<div style="color:var(--text3);font-size:0.8rem;">Sem detalhes</div>';
+  const lines = String(pedidoText).split('\n');
+  let html = '';
+  lines.forEach(line => {
+    line = line.trim();
+    if (!line) return;
+    // category header (ends with : and no leading number)
+    if (/^[^0-9].+:$/.test(line)) {
+      html += `<div class="item-category">${escHtml(line.replace(':',''))}</div>`;
+    } else if (/^\d/.test(line)) {
+      // item with quantity
+      const m = line.match(/^(\d+)\s+(.+)/);
+      if (m) {
+        html += `<div class="item-row"><span class="item-qty">${m[1]}</span><span class="item-name">${escHtml(m[2])}</span></div>`;
+      } else {
+        html += `<div class="item-row"><span class="item-name">${escHtml(line)}</span></div>`;
+      }
+    } else {
+      html += `<div class="item-row"><span class="item-name" style="color:var(--text3);font-size:0.78rem;font-style:italic">${escHtml(line)}</span></div>`;
+    }
+  });
+  return html || '<div style="color:var(--text3);font-size:0.8rem;">' + escHtml(pedidoText) + '</div>';
+}
+
+function updateRefreshLabel(txt) {
+  document.getElementById('refresh-indicator').textContent = txt;
+}
+
+// ─── BOOT ─────────────────────────────────────────────────
+if (loadSavedConfig()) {
+  // Show option to continue with saved config
+  document.getElementById('coda-token').value = config.token || '';
+  document.getElementById('coda-doc-id').value = config.docId || '';
+  document.getElementById('coda-table-id').value = config.tableId || '';
+  if (config.cols) {
+    document.getElementById('col-nome').value = config.cols.nome || 'Cliente';
+    document.getElementById('col-data').value = config.cols.data || 'Data de Entrega';
+    document.getElementById('col-tipo').value = config.cols.tipo || 'Tipo';
+    document.getElementById('col-pedido').value = config.cols.pedido || 'Pedido';
+    document.getElementById('col-telefone').value = config.cols.telefone || 'Telefone';
+    document.getElementById('col-valor').value = config.cols.valor || 'Valor Total';
+  }
+  if (config.alertHours) document.getElementById('alert-hours').value = config.alertHours;
+}
+</script>
+</body>
+</html>
