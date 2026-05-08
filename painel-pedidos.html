@@ -7,1109 +7,436 @@
 <meta name="theme-color" content="#f97316">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Pedidos">
 <link rel="manifest" href="./manifest.json">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0e0c0a;
-    --surface: #1a1714;
-    --surface2: #231f1b;
-    --border: #2e2925;
-    --accent: #f97316;
-    --accent2: #fbbf24;
-    --accent-soft: rgba(249,115,22,0.12);
-    --green: #22c55e;
-    --green-soft: rgba(34,197,94,0.12);
-    --blue: #60a5fa;
-    --blue-soft: rgba(96,165,250,0.12);
-    --red: #f87171;
-    --red-soft: rgba(248,113,113,0.12);
-    --text: #f5f0ea;
-    --text2: #a89880;
-    --text3: #6b5f52;
-    --radius: 14px;
-    --radius-sm: 8px;
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* ── SETUP SCREEN ── */
-  #setup-screen {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    padding: 24px;
-    background: radial-gradient(ellipse at 50% 0%, rgba(249,115,22,0.15) 0%, transparent 70%);
-  }
-
-  .setup-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 40px 36px;
-    width: 100%;
-    max-width: 480px;
-    box-shadow: 0 24px 80px rgba(0,0,0,0.5);
-  }
-
-  .setup-logo {
-    font-family: 'Syne', sans-serif;
-    font-size: 2rem;
-    font-weight: 800;
-    color: var(--accent);
-    margin-bottom: 4px;
-  }
-
-  .setup-subtitle {
-    color: var(--text2);
-    font-size: 0.9rem;
-    margin-bottom: 32px;
-  }
-
-  .setup-field {
-    margin-bottom: 18px;
-  }
-
-  .setup-field label {
-    display: block;
-    font-size: 0.78rem;
-    font-weight: 500;
-    color: var(--text2);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 8px;
-  }
-
-  .setup-field input, .setup-field select {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.95rem;
-    padding: 12px 14px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  .setup-field input:focus, .setup-field select:focus {
-    border-color: var(--accent);
-  }
-
-  .setup-field .hint {
-    font-size: 0.75rem;
-    color: var(--text3);
-    margin-top: 6px;
-  }
-
-  .setup-field .hint a {
-    color: var(--accent);
-    text-decoration: none;
-  }
-
-  /* ── DELIVERED BUTTON ── */
-  .btn-delivered {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: var(--green-soft);
-    border: 1px solid var(--green);
-    border-radius: var(--radius-sm);
-    color: var(--green);
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 0.82rem;
-    padding: 8px 14px;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin-top: 12px;
-    width: 100%;
-    justify-content: center;
-  }
-  .btn-delivered:hover { background: var(--green); color: #fff; }
-  .btn-delivered:disabled { opacity: 0.5; cursor: default; }
-
-  .btn-delivered-late {
-    background: var(--red-soft);
-    border-color: var(--red);
-    color: var(--red);
-  }
-  .btn-delivered-late:hover { background: var(--red); color: #fff; }
-
-  /* ── LATE PULSE ── */
-  .late-banner {
-    background: var(--red-soft);
-    border: 1px solid var(--red);
-    border-radius: var(--radius-sm);
-    padding: 10px 14px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    animation: latePulse 1.5s ease-in-out infinite;
-    margin: 0 16px 12px;
-  }
-  @keyframes latePulse {
-    0%,100% { box-shadow: 0 0 0 rgba(248,113,113,0); }
-    50% { box-shadow: 0 0 16px rgba(248,113,113,0.4); }
-  }
-  .late-banner-text { flex: 1; font-size: 0.85rem; color: var(--red); font-weight: 600; }
-  .late-banner-time { font-family: 'Syne', sans-serif; font-weight: 800; color: var(--red); font-size: 1rem; }
-
-  .btn-primary {
-    width: 100%;
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    border-radius: var(--radius-sm);
-    font-family: 'Syne', sans-serif;
-    font-size: 1rem;
-    font-weight: 700;
-    padding: 14px;
-    cursor: pointer;
-    transition: opacity 0.2s, transform 0.1s;
-    margin-top: 8px;
-  }
-
-  .btn-primary:hover { opacity: 0.9; }
-  .btn-primary:active { transform: scale(0.98); }
-
-  .setup-divider {
-    text-align: center;
-    color: var(--text3);
-    font-size: 0.8rem;
-    margin: 20px 0;
-    position: relative;
-  }
-
-  .setup-divider::before, .setup-divider::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    width: 40%;
-    height: 1px;
-    background: var(--border);
-  }
-  .setup-divider::before { left: 0; }
-  .setup-divider::after { right: 0; }
-
-  .btn-demo {
-    width: 100%;
-    background: transparent;
-    color: var(--text2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.9rem;
-    padding: 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .btn-demo:hover {
-    border-color: var(--text2);
-    color: var(--text);
-  }
-
-  /* ── MAIN APP ── */
-  #app { display: none; flex-direction: column; min-height: 100vh; }
-
-  /* Header */
-  .app-header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 14px 20px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-
-  .app-header-logo {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 1.1rem;
-    color: var(--accent);
-    flex: 1;
-  }
-
-  .header-clock {
-    font-family: 'Syne', sans-serif;
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: var(--text);
-    letter-spacing: 0.05em;
-  }
-
-  .header-date {
-    font-size: 0.75rem;
-    color: var(--text2);
-    text-align: right;
-  }
-
-  .btn-icon {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    color: var(--text2);
-    cursor: pointer;
-    padding: 8px 10px;
-    font-size: 1rem;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .btn-icon:hover { color: var(--text); border-color: var(--text2); }
-  .btn-icon.active { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
-
-  /* ── FEATURED ORDER ── */
-  .featured-section {
-    padding: 16px 16px 8px;
-  }
-
-  .section-label {
-    font-size: 0.7rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--text3);
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .section-label::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
-
-  .featured-card {
-    background: var(--surface);
-    border: 1.5px solid var(--accent);
-    border-radius: var(--radius);
-    padding: 0;
-    overflow: hidden;
-    box-shadow: 0 0 40px rgba(249,115,22,0.15), 0 4px 20px rgba(0,0,0,0.3);
-    animation: pulseGlow 3s ease-in-out infinite;
-  }
-
-  @keyframes pulseGlow {
-    0%, 100% { box-shadow: 0 0 30px rgba(249,115,22,0.15), 0 4px 20px rgba(0,0,0,0.3); }
-    50% { box-shadow: 0 0 50px rgba(249,115,22,0.3), 0 4px 20px rgba(0,0,0,0.3); }
-  }
-
-  .featured-header {
-    background: linear-gradient(135deg, var(--accent) 0%, #ea580c 100%);
-    padding: 14px 16px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .featured-badge {
-    background: rgba(255,255,255,0.2);
-    border-radius: 6px;
-    padding: 3px 8px;
-    font-size: 0.68rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: #fff;
-  }
-
-  .featured-name {
-    flex: 1;
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 1rem;
-    color: #fff;
-  }
-
-  .featured-tipo {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: rgba(255,255,255,0.9);
-  }
-
-  .featured-body {
-    padding: 14px 16px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-
-  .featured-info-box {
-    background: var(--surface2);
-    border-radius: var(--radius-sm);
-    padding: 10px 12px;
-  }
-
-  .featured-info-label {
-    font-size: 0.68rem;
-    color: var(--text3);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 3px;
-  }
-
-  .featured-info-value {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 0.95rem;
-    color: var(--text);
-  }
-
-  .featured-info-value.highlight {
-    color: var(--accent);
-    font-size: 1.1rem;
-  }
-
-  .timer-box {
-    background: var(--accent-soft);
-    border: 1px solid var(--accent);
-    border-radius: var(--radius-sm);
-    padding: 10px 12px;
-    grid-column: 1 / -1;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .timer-label { font-size: 0.75rem; color: var(--accent); font-weight: 500; }
-
-  .timer-value {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 1.4rem;
-    color: var(--accent);
-    letter-spacing: 0.05em;
-  }
-
-  .timer-value.urgent { color: var(--red); animation: blink 1s step-end infinite; }
-  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-
-  .featured-items {
-    padding: 0 16px 16px;
-  }
-
-  .items-toggle {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--text2);
-    font-size: 0.8rem;
-    cursor: pointer;
-    user-select: none;
-    margin-bottom: 10px;
-  }
-
-  .items-toggle svg { transition: transform 0.2s; }
-  .items-toggle.open svg { transform: rotate(180deg); }
-
-  .items-list { display: none; }
-  .items-list.open { display: block; }
-
-  .item-category {
-    font-size: 0.68rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--accent2);
-    margin: 10px 0 4px;
-  }
-
-  .item-row {
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
-    padding: 3px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-  }
-
-  .item-qty {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 0.9rem;
-    color: var(--accent);
-    min-width: 28px;
-  }
-
-  .item-name { font-size: 0.85rem; color: var(--text2); flex: 1; }
-
-  .featured-footer {
-    padding: 12px 16px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .featured-phone {
-    font-size: 0.82rem;
-    color: var(--text2);
-  }
-
-  .featured-total {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 1.1rem;
-    color: var(--green);
-  }
-
-  /* ── QUEUE ── */
-  .queue-section {
-    padding: 8px 16px 16px;
-    flex: 1;
-  }
-
-  .queue-scroll {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .queue-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .queue-card::before {
-    content: '';
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 3px;
-    background: var(--border);
-    transition: background 0.2s;
-  }
-
-  .queue-card:hover { border-color: var(--text3); }
-  .queue-card:hover::before { background: var(--accent); }
-
-  .queue-card.entrega::before { background: var(--blue); }
-  .queue-card.retirada::before { background: var(--green); }
-
-  .queue-card-top {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 4px;
-  }
-
-  .queue-pos {
-    font-family: 'Syne', sans-serif;
-    font-size: 0.75rem;
-    font-weight: 800;
-    color: var(--text3);
-    min-width: 20px;
-  }
-
-  .queue-name {
-    flex: 1;
-    font-weight: 500;
-    font-size: 0.9rem;
-    color: var(--text);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .queue-time {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 0.85rem;
-    color: var(--text2);
-  }
-
-  .queue-card-bottom {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding-left: 28px;
-  }
-
-  .tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    border-radius: 20px;
-    padding: 2px 8px;
-    font-size: 0.68rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-
-  .tag.retirada { background: var(--green-soft); color: var(--green); }
-  .tag.entrega { background: var(--blue-soft); color: var(--blue); }
-  .tag.urgente { background: var(--red-soft); color: var(--red); }
-
-  .queue-date { font-size: 0.75rem; color: var(--text3); }
-
-  .queue-countdown {
-    margin-left: auto;
-    font-size: 0.75rem;
-    color: var(--text3);
-    font-family: 'Syne', sans-serif;
-  }
-
-  .queue-countdown.soon { color: var(--accent); font-weight: 700; }
-  .queue-countdown.urgent { color: var(--red); font-weight: 700; }
-
-  /* expandable details */
-  .queue-details {
-    display: none;
-    padding-top: 10px;
-    margin-top: 10px;
-    border-top: 1px solid var(--border);
-    padding-left: 28px;
-  }
-
-  .queue-details.open { display: block; }
-
-  /* Empty state */
-  .empty-state {
-    text-align: center;
-    padding: 48px 20px;
-    color: var(--text3);
-  }
-
-  .empty-state-icon { font-size: 2.5rem; margin-bottom: 12px; }
-  .empty-state-text { font-size: 0.9rem; line-height: 1.6; }
-
-  /* Toast / Alert */
-  .toast-container {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 999;
-    pointer-events: none;
-  }
-
-  .toast {
-    background: linear-gradient(135deg, #f97316, #ea580c);
-    color: #fff;
-    padding: 16px 20px;
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transform: translateY(-100%);
-    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    pointer-events: all;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-  }
-
-  .toast.show { transform: translateY(0); }
-  .toast-emoji { font-size: 1.4rem; }
-  .toast-body { flex: 1; }
-  .toast-sub { font-family: 'DM Sans', sans-serif; font-weight: 400; font-size: 0.82rem; opacity: 0.9; }
-
-  /* Filter bar */
-  .filter-bar {
-    display: flex;
-    gap: 8px;
-    padding: 0 16px 12px;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .filter-bar::-webkit-scrollbar { display: none; }
-
-  .filter-btn {
-    flex-shrink: 0;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    color: var(--text2);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.78rem;
-    font-weight: 500;
-    padding: 6px 14px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .filter-btn.active {
-    background: var(--accent-soft);
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-
-  /* Refresh indicator */
-  .refresh-indicator {
-    text-align: center;
-    padding: 8px;
-    font-size: 0.72rem;
-    color: var(--text3);
-  }
-
-  .spinning { animation: spin 1s linear infinite; display: inline-block; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* Responsive */
-  @media (min-width: 600px) {
-    .featured-body { grid-template-columns: 1fr 1fr 1fr; }
-    .timer-box { grid-column: unset; }
-  }
-
-  @media (min-width: 900px) {
-    #app { flex-direction: row; flex-wrap: wrap; }
-    .app-header { width: 100%; }
-    .featured-section { width: 400px; flex-shrink: 0; padding: 20px; }
-    .queue-section { flex: 1; padding: 20px; border-left: 1px solid var(--border); min-height: calc(100vh - 60px); }
-    .queue-scroll { max-height: calc(100vh - 140px); overflow-y: auto; }
-  }
-
-  /* Scroll */
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-  /* Sound toggle indicator */
-  .sound-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--green);
-    animation: pulse-dot 2s ease-in-out infinite;
-  }
-  .sound-dot.off { background: var(--text3); animation: none; }
-  @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.4)} }
-
-  .no-featured {
-    background: var(--surface);
-    border: 1px dashed var(--border);
-    border-radius: var(--radius);
-    padding: 32px 20px;
-    text-align: center;
-    color: var(--text3);
-    font-size: 0.9rem;
-  }
+:root {
+  --bg: #0e0c0a; --surface: #1a1714; --surface2: #231f1b; --border: #2e2925;
+  --accent: #f97316; --accent2: #fbbf24; --accent-soft: rgba(249,115,22,0.12);
+  --green: #22c55e; --green-soft: rgba(34,197,94,0.12);
+  --blue: #60a5fa; --blue-soft: rgba(96,165,250,0.12);
+  --red: #f87171; --red-soft: rgba(248,113,113,0.12);
+  --text: #f5f0ea; --text2: #a89880; --text3: #6b5f52;
+  --r: 14px; --rs: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+
+/* APP LAYOUT */
+#app { display: flex; flex-direction: column; min-height: 100vh; }
+
+/* HEADER */
+.hdr {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 12px 16px; display: flex; align-items: center; gap: 10px;
+  position: sticky; top: 0; z-index: 100;
+}
+.hdr-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.1rem; color: var(--accent); flex: 1; }
+.hdr-clock { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 700; letter-spacing: .05em; }
+.hdr-date { font-size: .72rem; color: var(--text2); }
+.btn-ic {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: var(--rs);
+  color: var(--text2); cursor: pointer; padding: 7px 10px; font-size: .9rem;
+  display: flex; align-items: center; gap: 5px; transition: all .2s;
+}
+.btn-ic:hover { color: var(--text); border-color: var(--text2); }
+.sdot { width:6px; height:6px; border-radius:50%; background:var(--green); animation: pdot 2s ease-in-out infinite; }
+.sdot.off { background:var(--text3); animation:none; }
+@keyframes pdot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.4)} }
+
+/* UNLOCK AUDIO BTN */
+#unlock-btn {
+  position: fixed; bottom: 20px; right: 20px; z-index: 500;
+  background: var(--accent); color: #fff; font-family: 'Syne', sans-serif;
+  font-weight: 700; font-size: .9rem; padding: 14px 20px; border-radius: 12px;
+  cursor: pointer; box-shadow: 0 4px 20px rgba(249,115,22,.5);
+  animation: pg 2s ease-in-out infinite; border: none;
+}
+@keyframes pg { 0%,100%{box-shadow:0 0 20px rgba(249,115,22,.3)} 50%{box-shadow:0 0 40px rgba(249,115,22,.6)} }
+
+/* MAIN */
+.main { display: flex; flex: 1; }
+.col-featured { width: 100%; padding: 14px; }
+.col-queue { flex: 1; padding: 14px; border-top: 1px solid var(--border); }
+@media(min-width:900px) {
+  .col-featured { width: 400px; flex-shrink: 0; border-right: 1px solid var(--border); border-top: none; }
+  .col-queue { border-top: none; }
+  .main { flex-direction: row; }
+}
+
+/* SECTION LABEL */
+.slabel {
+  font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em;
+  color: var(--text3); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+}
+.slabel::after { content:''; flex:1; height:1px; background:var(--border); }
+
+/* FEATURED CARD */
+.fc {
+  background: var(--surface); border: 1.5px solid var(--accent); border-radius: var(--r);
+  overflow: hidden; box-shadow: 0 0 40px rgba(249,115,22,.15);
+  animation: fcglow 3s ease-in-out infinite;
+}
+@keyframes fcglow { 0%,100%{box-shadow:0 0 30px rgba(249,115,22,.12)} 50%{box-shadow:0 0 50px rgba(249,115,22,.28)} }
+.fc-hdr {
+  background: linear-gradient(135deg, var(--accent), #ea580c);
+  padding: 13px 15px; display: flex; align-items: center; gap: 8px;
+}
+.fc-badge {
+  background: rgba(255,255,255,.2); border-radius:5px; padding:2px 8px;
+  font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:#fff;
+}
+.fc-name { flex:1; font-family:'Syne',sans-serif; font-weight:700; font-size:.95rem; color:#fff; }
+.fc-tipo { font-size:.8rem; font-weight:600; color:rgba(255,255,255,.9); }
+.fc-body { padding: 13px 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.fc-box { background:var(--surface2); border-radius:var(--rs); padding:9px 11px; }
+.fc-box-label { font-size:.65rem; color:var(--text3); text-transform:uppercase; letter-spacing:.08em; margin-bottom:2px; }
+.fc-box-val { font-family:'Syne',sans-serif; font-weight:700; font-size:.9rem; }
+.fc-box-val.hl { color:var(--accent); font-size:1.05rem; }
+.fc-timer {
+  background:var(--accent-soft); border:1px solid var(--accent); border-radius:var(--rs);
+  padding:9px 11px; grid-column:1/-1; display:flex; align-items:center; justify-content:space-between;
+}
+.fc-timer-lbl { font-size:.72rem; color:var(--accent); font-weight:500; }
+.fc-timer-val { font-family:'Syne',sans-serif; font-weight:800; font-size:1.35rem; color:var(--accent); letter-spacing:.05em; }
+.fc-timer-val.urg { color:var(--red); animation:blink 1s step-end infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+.fc-late { background:var(--red-soft); border:1px solid var(--red); border-radius:var(--rs); padding:9px 13px; margin:0 15px 10px; display:flex; align-items:center; gap:8px; animation:lpulse 1.5s ease-in-out infinite; }
+@keyframes lpulse { 0%,100%{box-shadow:none} 50%{box-shadow:0 0 16px rgba(248,113,113,.4)} }
+.fc-late-txt { flex:1; font-size:.82rem; color:var(--red); font-weight:600; }
+.fc-late-min { font-family:'Syne',sans-serif; font-weight:800; color:var(--red); }
+.items-toggle { display:flex; align-items:center; gap:6px; color:var(--text2); font-size:.78rem; cursor:pointer; user-select:none; padding:0 15px; margin-bottom:8px; }
+.items-toggle svg { transition:transform .2s; }
+.items-toggle.open svg { transform:rotate(180deg); }
+.items-list { display:none; padding:0 15px 4px; }
+.items-list.open { display:block; }
+.icat { font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--accent2); margin:8px 0 3px; }
+.irow { display:flex; align-items:baseline; gap:5px; padding:2px 0; border-bottom:1px solid rgba(255,255,255,.04); }
+.iqty { font-family:'Syne',sans-serif; font-weight:700; font-size:.88rem; color:var(--accent); min-width:26px; }
+.iname { font-size:.82rem; color:var(--text2); flex:1; }
+.fc-foot { padding:11px 15px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+.fc-phone { font-size:.8rem; color:var(--text2); }
+.fc-total { font-family:'Syne',sans-serif; font-weight:800; font-size:1.05rem; color:var(--green); }
+.btn-deliver {
+  width:100%; margin:0 15px 14px; width:calc(100% - 30px);
+  background:var(--green-soft); border:1px solid var(--green); border-radius:var(--rs);
+  color:var(--green); font-family:'Syne',sans-serif; font-weight:700; font-size:.82rem;
+  padding:9px 14px; cursor:pointer; transition:all .2s; display:flex; align-items:center; justify-content:center; gap:6px;
+}
+.btn-deliver:hover { background:var(--green); color:#fff; }
+.btn-deliver.late { background:var(--red-soft); border-color:var(--red); color:var(--red); }
+.btn-deliver.late:hover { background:var(--red); color:#fff; }
+.btn-deliver:disabled { opacity:.5; cursor:default; }
+.no-fc { background:var(--surface); border:1px dashed var(--border); border-radius:var(--r); padding:30px; text-align:center; color:var(--text3); font-size:.88rem; }
+
+/* QUEUE */
+.filter-bar { display:flex; gap:7px; margin-bottom:12px; overflow-x:auto; scrollbar-width:none; }
+.filter-bar::-webkit-scrollbar { display:none; }
+.fbtn { flex-shrink:0; background:var(--surface2); border:1px solid var(--border); border-radius:20px; color:var(--text2); font-size:.75rem; font-weight:500; padding:5px 13px; cursor:pointer; transition:all .2s; }
+.fbtn.active { background:var(--accent-soft); border-color:var(--accent); color:var(--accent); }
+.qcard {
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--r);
+  padding:13px; cursor:pointer; transition:all .2s; position:relative; overflow:hidden; margin-bottom:9px;
+}
+.qcard::before { content:''; position:absolute; left:0;top:0;bottom:0; width:3px; background:var(--border); }
+.qcard.retirada::before { background:var(--green); }
+.qcard.entrega::before { background:var(--blue); }
+.qcard-top { display:flex; align-items:center; gap:7px; margin-bottom:3px; }
+.qpos { font-family:'Syne',sans-serif; font-size:.72rem; font-weight:800; color:var(--text3); min-width:20px; }
+.qname { flex:1; font-weight:500; font-size:.88rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.qtime { font-family:'Syne',sans-serif; font-weight:700; font-size:.82rem; color:var(--text2); }
+.qcard-bot { display:flex; align-items:center; gap:7px; padding-left:27px; }
+.tag { display:inline-flex; align-items:center; gap:3px; border-radius:20px; padding:2px 7px; font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; }
+.tag.retirada { background:var(--green-soft); color:var(--green); }
+.tag.entrega { background:var(--blue-soft); color:var(--blue); }
+.tag.urgente { background:var(--red-soft); color:var(--red); }
+.qdate { font-size:.72rem; color:var(--text3); }
+.qcd { margin-left:auto; font-size:.72rem; color:var(--text3); font-family:'Syne',sans-serif; }
+.qcd.soon { color:var(--accent); font-weight:700; }
+.qcd.urg { color:var(--red); font-weight:700; }
+.qdetails { display:none; padding-top:10px; margin-top:9px; border-top:1px solid var(--border); padding-left:27px; }
+.qdetails.open { display:block; }
+.btn-qdeliver {
+  background:var(--green-soft); border:1px solid var(--green); border-radius:var(--rs);
+  color:var(--green); font-family:'Syne',sans-serif; font-weight:700; font-size:.78rem;
+  padding:7px 12px; cursor:pointer; transition:all .2s; display:flex; align-items:center; gap:5px; margin-top:9px;
+}
+.btn-qdeliver:hover { background:var(--green); color:#fff; }
+.btn-qdeliver.late { background:var(--red-soft); border-color:var(--red); color:var(--red); }
+.btn-qdeliver.late:hover { background:var(--red); color:#fff; }
+
+/* TOAST */
+.toast-wrap { position:fixed; top:0; left:0; right:0; z-index:999; pointer-events:none; }
+.toast {
+  background:linear-gradient(135deg,#f97316,#ea580c); color:#fff;
+  padding:14px 18px; display:flex; align-items:center; gap:9px;
+  transform:translateY(-100%); transition:transform .4s cubic-bezier(.34,1.56,.64,1);
+  pointer-events:all; box-shadow:0 8px 32px rgba(0,0,0,.4);
+}
+.toast.show { transform:translateY(0); }
+.toast-body { flex:1; }
+.toast-title { font-family:'Syne',sans-serif; font-weight:700; font-size:.95rem; }
+.toast-sub { font-size:.78rem; opacity:.9; }
+.toast-close { background:none; border:none; color:#fff; font-size:1.2rem; cursor:pointer; padding:0 3px; }
+
+.rlabel { text-align:center; padding:7px; font-size:.7rem; color:var(--text3); }
+.empty { text-align:center; padding:40px 20px; color:var(--text3); }
+.empty-icon { font-size:2.2rem; margin-bottom:10px; }
+::-webkit-scrollbar { width:4px; } ::-webkit-scrollbar-track { background:transparent; } ::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
 </style>
 </head>
 <body>
 
-<!-- SETUP SCREEN -->
-<div id="setup-screen" style="display:none">
-  <div class="setup-card">
-    <div class="setup-logo">🍽️ Painel de Pedidos</div>
-    <div class="setup-subtitle">Conecte com seu Coda para começar</div>
-
-    <div class="setup-field">
-      <label>API Token do Coda</label>
-      <input type="password" id="coda-token" placeholder="Seu token aqui...">
-      <div class="hint">
-        Acesse <a href="https://coda.io/account" target="_blank">coda.io/account</a> → API Settings → Generate API Token
-      </div>
-    </div>
-
-    <div class="setup-field">
-      <label>ID do Documento</label>
-      <input type="text" id="coda-doc-id" placeholder="Ex: abc123XYZ">
-      <div class="hint">
-        Na URL do Coda: coda.io/d/<strong>ID-AQUI</strong>/...
-      </div>
-    </div>
-
-    <div class="setup-field">
-      <label>ID ou Nome da Tabela de Pedidos</label>
-      <input type="text" id="coda-table-id" placeholder="Ex: Pedidos ou grid-ABC123">
-      <div class="hint">Nome exato da tabela no Coda (ex: "Pedidos")</div>
-    </div>
-
-    <div class="setup-field">
-      <label>Coluna: Nome do Cliente</label>
-      <input type="text" id="col-nome" placeholder="Ex: Cliente" value="Cliente">
-    </div>
-
-    <div class="setup-field">
-      <label>Coluna: Data e Hora</label>
-      <input type="text" id="col-data" placeholder="Ex: Data de Entrega" value="Data de Entrega">
-    </div>
-
-    <div class="setup-field">
-      <label>Coluna: Tipo (Entrega / Retirada)</label>
-      <input type="text" id="col-tipo" placeholder="Ex: Tipo" value="Tipo">
-    </div>
-
-    <div class="setup-field">
-      <label>Coluna: Detalhes do Pedido</label>
-      <input type="text" id="col-pedido" placeholder="Ex: Pedido" value="Pedido">
-    </div>
-
-    <div class="setup-field">
-      <label>Coluna: Telefone</label>
-      <input type="text" id="col-telefone" placeholder="Ex: Telefone" value="Telefone">
-    </div>
-
-    <div class="setup-field">
-      <label>Coluna: Valor Total</label>
-      <input type="text" id="col-valor" placeholder="Ex: Valor Total" value="Valor Total">
-    </div>
-
-    <div class="setup-field">
-      <label>Coluna: Status / Entregue</label>
-      <input type="text" id="col-status" placeholder="Ex: Status" value="Status">
-      <div class="hint">Coluna que indica se o pedido foi entregue/retirado</div>
-    </div>
-
-    <div class="setup-field">
-      <label>Valor para marcar como entregue</label>
-      <input type="text" id="col-status-valor" placeholder="Ex: Entregue" value="Entregue">
-      <div class="hint">O que escrever nessa coluna quando o pedido for concluído</div>
-    </div>
-
-    <div class="setup-field">
-      <label>Avisar com quantas horas de antecedência?</label>
-      <select id="alert-hours">
-        <option value="1" selected>1 hora antes</option>
-        <option value="2">2 horas antes</option>
-        <option value="3">3 horas antes</option>
-        <option value="0.5">30 minutos antes</option>
-      </select>
-    </div>
-
-    <button class="btn-primary" onclick="saveConfig()">🔗 Conectar ao Coda</button>
-
-    <div class="setup-divider">ou</div>
-    <button class="btn-demo" onclick="loadDemo()">👀 Ver demonstração com pedidos de exemplo</button>
-  </div>
-</div>
-
-<!-- MAIN APP -->
-<div id="app" style="display:flex">
-  <header class="app-header">
-    <div>
-      <div class="app-header-logo">🍽️ Pedidos</div>
-    </div>
+<div id="app">
+  <!-- HEADER -->
+  <header class="hdr">
+    <div class="hdr-logo">🍽️ Pedidos</div>
     <div style="flex:1"></div>
     <div style="text-align:right">
-      <div class="header-clock" id="clock">00:00</div>
-      <div class="header-date" id="date-display"></div>
+      <div class="hdr-clock" id="clock">--:--</div>
+      <div class="hdr-date" id="date-txt"></div>
     </div>
-    <button class="btn-icon" id="sound-btn" onclick="toggleSound()" title="Som">
-      <div class="sound-dot" id="sound-dot"></div>
-      <span id="sound-label">Som</span>
+    <button class="btn-ic" id="sound-btn" onclick="toggleSound()">
+      <div class="sdot" id="sdot"></div>
+      <span id="slabel">Som</span>
     </button>
-    <button class="btn-icon" onclick="refreshOrders()" title="Atualizar">⟳</button>
-    <button class="btn-icon" onclick="showSetup()" title="Configurações">⚙</button>
+    <button class="btn-ic" onclick="fetchOrders()" title="Atualizar">⟳</button>
   </header>
 
-  <!-- Audio unlock — necessário no Android TV -->
-  <div id="audio-unlock-btn" onclick="unlockAudio()" style="
-    position:fixed;bottom:20px;right:20px;z-index:500;
-    background:var(--accent);color:#fff;
-    font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;
-    padding:14px 20px;border-radius:12px;cursor:pointer;
-    box-shadow:0 4px 20px rgba(249,115,22,0.5);
-    animation:pulseGlow 2s ease-in-out infinite;
-    display:flex;align-items:center;gap:8px;
-  ">
-    🔊 Toque aqui para ativar o som
-  </div>
+  <button id="unlock-btn" onclick="unlockAudio()">🔊 Toque para ativar o som</button>
 
-  <!-- Featured -->
-  <div class="featured-section">
-    <div class="section-label">▶ Próximo a fazer</div>
-    <div id="featured-container">
-      <div class="no-featured">Nenhum pedido para hoje ainda 🎉</div>
+  <div class="main">
+    <!-- FEATURED -->
+    <div class="col-featured">
+      <div class="slabel">▶ Próximo</div>
+      <div id="featured"></div>
     </div>
-  </div>
 
-  <!-- Queue -->
-  <div class="queue-section">
-    <div class="section-label">Fila do dia</div>
-    <div class="filter-bar">
-      <button class="filter-btn active" onclick="setFilter('todos', this)">Todos</button>
-      <button class="filter-btn" onclick="setFilter('retirada', this)">🛍️ Retirada</button>
-      <button class="filter-btn" onclick="setFilter('entrega', this)">🛵 Entrega</button>
-      <button class="filter-btn" onclick="setFilter('urgente', this)">🔥 Urgente</button>
-    </div>
-    <div id="queue-container" class="queue-scroll">
-      <div class="empty-state">
-        <div class="empty-state-icon">📭</div>
-        <div class="empty-state-text">Nenhum pedido na fila hoje.</div>
+    <!-- QUEUE -->
+    <div class="col-queue">
+      <div class="slabel">Fila do dia</div>
+      <div class="filter-bar">
+        <button class="fbtn active" onclick="setFilter('todos',this)">Todos</button>
+        <button class="fbtn" onclick="setFilter('retirada',this)">🛍️ Retirada</button>
+        <button class="fbtn" onclick="setFilter('entrega',this)">🛵 Entrega</button>
+        <button class="fbtn" onclick="setFilter('urgente',this)">🔥 Urgente</button>
       </div>
+      <div id="queue"></div>
+      <div class="rlabel" id="rlabel">—</div>
     </div>
-    <div class="refresh-indicator" id="refresh-indicator">—</div>
   </div>
 </div>
 
-<!-- Toast -->
-<div class="toast-container">
+<!-- TOAST -->
+<div class="toast-wrap">
   <div class="toast" id="toast">
-    <div class="toast-emoji">🔔</div>
+    <div style="font-size:1.3rem">🔔</div>
     <div class="toast-body">
-      <div id="toast-title">Alerta de Pedido</div>
+      <div class="toast-title" id="toast-title"></div>
       <div class="toast-sub" id="toast-sub"></div>
     </div>
-    <button style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;padding:0 4px" onclick="hideToast()">×</button>
+    <button class="toast-close" onclick="hideToast()">×</button>
   </div>
 </div>
 
 <script>
-// ─── STATE ───────────────────────────────────────────────
-let config = {};
+// ── CONFIG ──────────────────────────────────────────────
+const CFG = {
+  token: 'c2df9327-a40c-4716-9f59-c40620d691ef',
+  docId: 'Wq8ktEEI3N',
+  tableId: 'Pedidos Base',
+  cols: {
+    nome: 'Cliente',
+    data: 'Data e Hora',
+    tipo: 'Entrega/Retirada',
+    pedido: 'Nota',
+    telefone: 'Número',
+    valor: 'Valor Total',
+    status: 'Status',
+    statusValor: 'Entregue'
+  },
+  alertHours: 1
+};
+
+// ── STATE ───────────────────────────────────────────────
 let orders = [];
-let currentFilter = 'todos';
-let soundEnabled = true;
-let alertedOrders = new Set();
-let refreshInterval = null;
-let isDemo = false;
+let filter = 'todos';
+let soundOn = true;
+let alerted = new Set();
 let audioCtx = null;
+let audioUnlocked = false;
 
-// ─── DEMO DATA ────────────────────────────────────────────
-const DEMO_ORDERS = [
-  {
-    id: '1',
-    nome: 'Francielly Rainha Martins',
-    telefone: '(38) 99100-7725',
-    tipo: 'Retirada',
-    datetime: todayAt(16, 0),
-    pedido: 'Salgado Frito:\n50 Pastel de Frango com Catupiry\n25 Pastel pipoca de carne moída\n50 Coxinha\nAssado:\n25 Tortinha de frango com catupiry\nDoce:\n50 Leite em pó\nBolo:\n1 🍰Bolo aro 20\nRecheio: Creme de Moça com Geleia de Morango\ndoce de leite\nSalgado Especial:\n50 Barquete',
-    valor: 'R$391,25'
-  },
-  {
-    id: '2',
-    nome: 'Carlos Eduardo Silva',
-    telefone: '(38) 98765-4321',
-    tipo: 'Entrega',
-    datetime: todayAt(18, 30),
-    pedido: 'Salgado Frito:\n30 Coxinha\n20 Kibe\nDoce:\n25 Brigadeiro gourmet',
-    valor: 'R$185,00'
-  },
-  {
-    id: '3',
-    nome: 'Maria Fernanda Costa',
-    telefone: '(38) 99234-5678',
-    tipo: 'Retirada',
-    datetime: todayAt(14, 0),
-    pedido: 'Assado:\n50 Tortinha de palmito\nDoce:\n30 Trufa de chocolate',
-    valor: 'R$220,50'
-  },
-  {
-    id: '4',
-    nome: 'João Batista Nunes',
-    telefone: '(38) 97654-3210',
-    tipo: 'Entrega',
-    datetime: todayAt(20, 0),
-    pedido: 'Salgado Frito:\n100 Coxinha\n50 Pastel de carne\nBolo:\n2 Bolo aro 15',
-    valor: 'R$540,00'
-  }
-];
-
-function todayAt(h, m) {
-  const d = new Date();
-  d.setHours(h, m, 0, 0);
-  return d;
-}
-
-// ─── CLOCK ────────────────────────────────────────────────
-function updateClock() {
+// ── CLOCK ───────────────────────────────────────────────
+function tickClock() {
   const now = new Date();
   document.getElementById('clock').textContent =
     now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-  document.getElementById('date-display').textContent =
+  document.getElementById('date-txt').textContent =
     now.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' });
 }
-setInterval(updateClock, 1000);
-updateClock();
+setInterval(tickClock, 1000);
+tickClock();
 
-// ─── CONFIG ───────────────────────────────────────────────
-function showSetupError(msg) {
-  let el = document.getElementById('setup-error');
-  if (!el) {
-    el = document.createElement('div');
-    el.id = 'setup-error';
-    el.style.cssText = 'background:#f871711a;border:1px solid #f87171;border-radius:8px;padding:12px 14px;color:#f87171;font-size:0.85rem;margin-bottom:12px;';
-    const btn = document.querySelector('.btn-primary');
-    btn.parentNode.insertBefore(el, btn);
-  }
-  el.textContent = '⚠️ ' + msg;
-  el.style.display = 'block';
+// ── AUDIO ───────────────────────────────────────────────
+function getCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
 }
 
-function hideSetupError() {
-  const el = document.getElementById('setup-error');
-  if (el) el.style.display = 'none';
+function unlockAudio() {
+  getCtx();
+  audioUnlocked = true;
+  document.getElementById('unlock-btn').style.display = 'none';
+  playBell(1).then(() => speak('Som ativado!'));
 }
 
-function saveConfig() {
-  hideSetupError();
-
-  // Visual feedback immediately
-  const connectBtn = document.querySelector('.btn-primary');
-  if (connectBtn) { connectBtn.textContent = '⏳ Conectando...'; connectBtn.disabled = true; }
-
-  const token = document.getElementById('coda-token').value.trim();
-  const docId = document.getElementById('coda-doc-id').value.trim();
-  const tableId = document.getElementById('coda-table-id').value.trim();
-
-  console.log('saveConfig chamado:', { token: token ? '✓' : '✗', docId, tableId });
-
-  const resetBtn = () => { if (connectBtn) { connectBtn.textContent = '🔗 Conectar ao Coda'; connectBtn.disabled = false; } };
-
-  if (!token) { showSetupError('Preencha o API Token do Coda.'); resetBtn(); return; }
-  if (!docId) { showSetupError('Preencha o ID do Documento.'); resetBtn(); return; }
-  if (!tableId) { showSetupError('Preencha o ID ou Nome da Tabela.'); resetBtn(); return; }
-
-  config = {
-    token, docId, tableId,
-    cols: {
-      nome: document.getElementById('col-nome').value.trim() || 'Cliente',
-      data: document.getElementById('col-data').value.trim() || 'Data de Entrega',
-      tipo: document.getElementById('col-tipo').value.trim() || 'Tipo',
-      pedido: document.getElementById('col-pedido').value.trim() || 'Pedido',
-      telefone: document.getElementById('col-telefone').value.trim() || 'Telefone',
-      valor: document.getElementById('col-valor').value.trim() || 'Valor Total',
-      status: document.getElementById('col-status').value.trim() || 'Status',
-      statusValor: document.getElementById('col-status-valor').value.trim() || 'Entregue',
-    },
-    alertHours: parseFloat(document.getElementById('alert-hours').value) || 1
+async function playBell(intensity) {
+  const ctx = getCtx();
+  const ring = (delay, freq, gain) => {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    const o2 = ctx.createOscillator(), g2 = ctx.createGain();
+    o.type = 'sine'; o.frequency.value = freq;
+    o2.type = 'sine'; o2.frequency.value = freq * 2.76;
+    g.gain.setValueAtTime(0, ctx.currentTime + delay);
+    g.gain.linearRampToValueAtTime(gain, ctx.currentTime + delay + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 2.5);
+    g2.gain.setValueAtTime(0, ctx.currentTime + delay);
+    g2.gain.linearRampToValueAtTime(gain * 0.3, ctx.currentTime + delay + 0.01);
+    g2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 1.5);
+    o.connect(g); g.connect(ctx.destination);
+    o2.connect(g2); g2.connect(ctx.destination);
+    o.start(ctx.currentTime + delay); o.stop(ctx.currentTime + delay + 2.5);
+    o2.start(ctx.currentTime + delay); o2.stop(ctx.currentTime + delay + 1.5);
   };
-
-  try {
-    localStorage.setItem('pedidos_config', JSON.stringify(config));
-  } catch(e) {
-    console.warn('localStorage indisponível (normal em file://):', e);
-  }
-
-  isDemo = false;
-  startApp();
+  const rings = intensity >= 3 ? 4 : intensity === 2 ? 3 : 2;
+  const freq = intensity >= 3 ? 880 : intensity === 2 ? 740 : 660;
+  for (let i = 0; i < rings; i++) ring(i * 0.55, freq, 0.6);
+  return new Promise(r => setTimeout(r, rings * 550 + 500));
 }
 
-function loadSavedConfig() {
+function speak(text) {
+  if (!soundOn) return;
   try {
-    const saved = localStorage.getItem('pedidos_config');
-    if (saved) {
-      config = JSON.parse(saved);
-      return true;
-    }
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'pt-BR'; u.rate = 0.88; u.volume = 1;
+    const voices = window.speechSynthesis.getVoices();
+    const pt = voices.find(v => v.lang === 'pt-BR') || voices.find(v => v.lang.startsWith('pt'));
+    if (pt) u.voice = pt;
+    window.speechSynthesis.speak(u);
   } catch(e) {}
-  return false;
 }
 
-function showSetup() {
-  document.getElementById('setup-screen').style.display = 'flex';
-  document.getElementById('app').style.display = 'none';
-  if (refreshInterval) { clearInterval(refreshInterval); refreshInterval = null; }
+function toggleSound() {
+  soundOn = !soundOn;
+  document.getElementById('sdot').className = 'sdot' + (soundOn ? '' : ' off');
+  document.getElementById('slabel').textContent = soundOn ? 'Som' : 'Mudo';
+  if (soundOn) playBell(1).then(() => speak('Som ativado!'));
 }
 
-function loadDemo() {
-  isDemo = true;
-  config = { alertHours: 1 };
-  startApp();
+// ── TOAST ───────────────────────────────────────────────
+let toastTimer = null;
+function showToast(title, sub) {
+  document.getElementById('toast-title').textContent = title;
+  document.getElementById('toast-sub').textContent = sub || '';
+  document.getElementById('toast').classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(hideToast, 6000);
 }
+function hideToast() { document.getElementById('toast').classList.remove('show'); }
 
-// ─── APP START ────────────────────────────────────────────
-function startApp() {
-  // Always show app, never go back to setup automatically
-  document.getElementById('setup-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'flex';
+// ── ALERTS ──────────────────────────────────────────────
+const STAGES = [60, 30, 15, 5, 0];
 
-  if (isDemo) {
-    orders = DEMO_ORDERS;
-    renderAll();
-    setInterval(checkAlerts, 30000);
-    setInterval(renderAll, 60000);
-    updateRefreshLabel('Modo demonstração');
+async function triggerAlert(order, mins, type) {
+  const isEntrega = order.tipo.toLowerCase().includes('entrega');
+  const tipo = isEntrega ? 'entrega' : 'retirada';
+  let bell, title, speech;
+
+  if (type === 'late') {
+    bell = 3; title = `⚠️ ATRASADO ${mins}min — ${order.nome}`;
+    speech = `Atenção! O pedido de ${order.nome} está atrasado ${mins} minutos.`;
+  } else if (mins === 0) {
+    bell = 3; title = `🔔 AGORA — ${order.nome}`;
+    speech = `Hora do pedido! ${order.nome}, ${tipo} agora!`;
+  } else if (mins <= 5) {
+    bell = 3; title = `🔥 ${mins} min — ${order.nome}`;
+    speech = `Urgente! ${mins} minutos para o pedido de ${order.nome}.`;
+  } else if (mins <= 15) {
+    bell = 2; title = `⏰ ${mins} min — ${order.nome}`;
+    speech = `Atenção! ${mins} minutos para o pedido de ${order.nome} para ${tipo}.`;
   } else {
-    fetchCodaOrders();
-    if (refreshInterval) clearInterval(refreshInterval);
-    refreshInterval = setInterval(fetchCodaOrders, 2 * 60 * 1000);
+    bell = 1; title = `🔔 ${mins} min — ${order.nome}`;
+    speech = `Lembrete. ${mins} minutos para o pedido de ${order.nome} para ${tipo}.`;
   }
 
-  checkAlerts();
+  showToast(title, fmtTime(order.datetime) + ' · ' + (isEntrega ? '🛵 Entrega' : '🛍️ Retirada'));
+  if (soundOn) { await playBell(bell); speak(speech); }
+  renderAll();
 }
 
-function refreshOrders() {
-  if (isDemo) {
-    renderAll();
-    showToastMsg('🔄 Atualizado!', 'Modo demonstração ativo');
-    return;
-  }
-  fetchCodaOrders();
-}
-
-// ─── CODA API ─────────────────────────────────────────────
-async function fetchCodaOrders() {
-  updateRefreshLabel('⟳ Atualizando...');
-  try {
-    const url = `https://coda.io/apis/v1/docs/${config.docId}/tables/${encodeURIComponent(config.tableId)}/rows?useColumnNames=true&limit=200`;
-    const res = await fetch(url, {
-      headers: { 'Authorization': `Bearer ${config.token}` }
+function checkAlerts() {
+  const now = new Date();
+  orders.forEach(o => {
+    if (o.entregue) return;
+    const diffMin = Math.round((o.datetime - now) / 60000);
+    STAGES.forEach(s => {
+      const key = `${o.id}_s${s}`;
+      if (diffMin <= s && diffMin > s - 1.5 && !alerted.has(key)) {
+        alerted.add(key); triggerAlert(o, s, 'pre');
+      }
     });
+    if (diffMin < 0) {
+      const lk = `${o.id}_late${Math.floor(Math.abs(diffMin) / 5)}`;
+      if (!alerted.has(lk)) { alerted.add(lk); triggerAlert(o, Math.abs(diffMin), 'late'); }
+    }
+  });
+}
+setInterval(checkAlerts, 30000);
 
+// ── CODA ────────────────────────────────────────────────
+async function fetchOrders() {
+  document.getElementById('rlabel').textContent = '⟳ Atualizando...';
+  try {
+    const url = `https://coda.io/apis/v1/docs/${CFG.docId}/tables/${encodeURIComponent(CFG.tableId)}/rows?useColumnNames=true&limit=200`;
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${CFG.token}` } });
     if (!res.ok) {
-      let msg = res.status;
-      try { const err = await res.json(); msg = err.message || msg; } catch(e) {}
-      updateRefreshLabel(`❌ Erro Coda: ${msg}`);
+      const e = await res.json().catch(() => ({}));
+      document.getElementById('rlabel').textContent = `❌ ${e.message || res.status}`;
       return;
     }
-
     const data = await res.json();
-    orders = parseCodaRows(data.items || []);
-    renderAll();
-    checkAlerts();
-    updateRefreshLabel('✓ Atualizado às ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }));
+    orders = parseRows(data.items || []);
+    renderAll(); checkAlerts();
+    document.getElementById('rlabel').textContent =
+      '✓ Atualizado às ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
   } catch(e) {
-    updateRefreshLabel('❌ Sem conexão — tentando em 2 min');
-    console.warn('fetchCodaOrders erro:', e);
+    document.getElementById('rlabel').textContent = '❌ Sem conexão';
   }
 }
 
-function parseCodaRows(rows) {
-  const c = config.cols;
-  const today = new Date();
-  today.setHours(0,0,0,0);
-
+function parseRows(rows) {
+  const c = CFG.cols;
+  const today = new Date(); today.setHours(0,0,0,0);
   return rows.map((row, i) => {
     const v = row.values || {};
-    const dtRaw = v[c.data] || '';
     let dt = null;
-
-    // Try to parse datetime
-    if (dtRaw) {
-      if (typeof dtRaw === 'number') {
-        dt = new Date(dtRaw);
-      } else {
-        dt = new Date(dtRaw);
+    const raw = v[c.data];
+    if (raw) {
+      if (typeof raw === 'number') { dt = new Date(raw); }
+      else {
+        dt = new Date(raw);
         if (isNaN(dt)) {
-          // Try Brazilian format dd/mm/yyyy hh:mm
-          const m = String(dtRaw).match(/(\d{2})\/(\d{2})\/(\d{4})[,\s]+(\d{2}):(\d{2})/);
+          const m = String(raw).match(/(\d{2})\/(\d{2})\/(\d{4})[,\s]+(\d{2}):(\d{2})/);
           if (m) dt = new Date(+m[3], +m[2]-1, +m[1], +m[4], +m[5]);
         }
       }
     }
-
+    if (!dt || isNaN(dt)) return null;
+    const d = new Date(dt); d.setHours(0,0,0,0);
+    if (d.getTime() !== today.getTime()) return null;
     return {
       id: row.id || String(i),
       nome: v[c.nome] || '(sem nome)',
@@ -1118,587 +445,201 @@ function parseCodaRows(rows) {
       datetime: dt,
       pedido: v[c.pedido] || '',
       valor: v[c.valor] || '',
-      entregue: v[c.status] === (c.statusValor || 'Entregue')
+      entregue: String(v[c.status] || '').toLowerCase() === String(c.statusValor).toLowerCase()
     };
-  }).filter(o => {
-    if (!o.datetime || isNaN(o.datetime)) return false;
-    const d = new Date(o.datetime); d.setHours(0,0,0,0);
-    return d.getTime() === today.getTime();
-  }).sort((a, b) => a.datetime - b.datetime);
+  }).filter(Boolean).sort((a,b) => a.datetime - b.datetime);
 }
 
-// ─── RENDER ───────────────────────────────────────────────
-function renderAll() {
-  const now = new Date();
-  const filtered = filterOrders();
-
-  // Featured = first upcoming OR most recently late undelivered order
-  const upcoming = orders.filter(o => !o.entregue && o.datetime >= now);
-  const lateUndelivered = orders.filter(o => !o.entregue && o.datetime < now).sort((a,b) => b.datetime - a.datetime);
-  const featured = upcoming[0] || lateUndelivered[0] || null;
-  renderFeatured(featured);
-
-  // Queue = all today except featured
-  renderQueue(filtered, featured);
-}
-
-function filterOrders() {
-  const now = new Date();
-  return orders.filter(o => {
-    if (currentFilter === 'retirada') return o.tipo.toLowerCase().includes('retirada');
-    if (currentFilter === 'entrega') return o.tipo.toLowerCase().includes('entrega');
-    if (currentFilter === 'urgente') {
-      const mins = (o.datetime - now) / 60000;
-      return mins >= 0 && mins <= 60;
-    }
-    return true;
-  });
-}
-
-function renderFeatured(order) {
-  const el = document.getElementById('featured-container');
-  if (!order) {
-    el.innerHTML = `<div class="no-featured">Todos os pedidos do dia foram entregues! 🎉</div>`;
-    return;
-  }
-
-  const now = new Date();
-  const minsLeft = Math.round((order.datetime - now) / 60000);
-
-  const isLate = minsLeft < 0;
-  const timerClass = (isLate || minsLeft <= 15) ? 'urgent' : '';
-
-  const timerText = isLate
-    ? 'ATRASADO ' + Math.abs(minsLeft) + 'min'
-    : minsLeft === 0 ? 'AGORA!'
-    : minsLeft >= 60 ? Math.floor(minsLeft/60) + 'h ' + (minsLeft%60) + 'min'
-    : minsLeft + ' min';
-
-  const isEntrega = order.tipo.toLowerCase().includes('entrega');
-  const tipoIcon = isEntrega ? '🛵' : '🛍️';
-  const tipoLabel = isEntrega ? 'Entrega' : 'Retirada';
-
-  const itemsHtml = parseItemsHtml(order.pedido);
-
-  const lateBanner = isLate && !order.entregue ? `
-    <div class="late-banner">
-      <span style="font-size:1.3rem">⚠️</span>
-      <span class="late-banner-text">Pedido atrasado! Marque como entregue quando concluir.</span>
-      <span class="late-banner-time">${Math.abs(minsLeft)}min</span>
-    </div>
-  ` : '';
-
-  const deliverBtn = !order.entregue ? `
-    <button class="btn-delivered ${isLate ? 'btn-delivered-late' : ''}" id="deliver-btn-${order.id}" onclick="markDelivered('${order.id}')">
-      ✓ Marcar como ${isEntrega ? 'Entregue' : 'Retirado'}
-    </button>
-  ` : `<div style="text-align:center;color:var(--green);font-size:0.85rem;padding:10px 0">✅ Concluído</div>`;
-
-  el.innerHTML = `
-    <div class="featured-card">
-      <div class="featured-header">
-        <span class="featured-badge">PRÓXIMO</span>
-        <span class="featured-name">${escHtml(order.nome)}</span>
-        <span class="featured-tipo">${tipoIcon} ${tipoLabel}</span>
-      </div>
-      ${lateBanner}
-      <div class="featured-body">
-        <div class="featured-info-box">
-          <div class="featured-info-label">Horário</div>
-          <div class="featured-info-value highlight">${fmtTime(order.datetime)}</div>
-        </div>
-        <div class="featured-info-box">
-          <div class="featured-info-label">Data</div>
-          <div class="featured-info-value">${fmtDate(order.datetime)}</div>
-        </div>
-        <div class="featured-info-box">
-          <div class="featured-info-label">Valor</div>
-          <div class="featured-info-value">${escHtml(String(order.valor || '—'))}</div>
-        </div>
-        <div class="timer-box">
-          <div>
-            <div class="timer-label">${minsLeft < 0 ? '⚠️ Atrasado' : '⏳ Tempo restante'}</div>
-          </div>
-          <div class="timer-value ${timerClass}" id="featured-timer">${timerText}</div>
-        </div>
-      </div>
-      <div class="featured-items">
-        <div class="items-toggle" id="items-toggle" onclick="toggleItems(this)">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2,5 7,10 12,5"/></svg>
-          Ver itens do pedido
-        </div>
-        <div class="items-list" id="items-list">
-          ${itemsHtml}
-        </div>
-      </div>
-      <div class="featured-footer">
-        <div class="featured-phone">📞 ${escHtml(order.telefone || '—')}</div>
-        <div class="featured-total">${escHtml(String(order.valor || ''))}</div>
-      </div>
-      <div style="padding: 0 16px 16px">${deliverBtn}</div>
-    </div>
-  `;
-
-  // Live timer
-  startFeaturedTimer(order);
-}
-
-function startFeaturedTimer(order) {
-  if (window._featuredTimerInterval) clearInterval(window._featuredTimerInterval);
-  window._featuredTimerInterval = setInterval(() => {
-    const el = document.getElementById('featured-timer');
-    if (!el) { clearInterval(window._featuredTimerInterval); return; }
-    const now = new Date();
-    const minsLeft = Math.round((order.datetime - now) / 60000);
-    const isUrgent = minsLeft <= 30;
-    el.className = 'timer-value' + (isUrgent ? ' urgent' : '');
-    el.textContent = minsLeft < 0
-      ? 'ATRASADO ' + Math.abs(minsLeft) + 'min'
-      : minsLeft === 0 ? 'AGORA!'
-      : minsLeft >= 60 ? Math.floor(minsLeft/60) + 'h ' + (minsLeft%60) + 'min'
-      : minsLeft + ' min';
-  }, 10000);
-}
-
-function toggleItems(btn) {
-  btn.classList.toggle('open');
-  const list = document.getElementById('items-list');
-  list.classList.toggle('open');
-  btn.querySelector('span') && (btn.querySelector('span').textContent =
-    list.classList.contains('open') ? 'Ocultar itens' : 'Ver itens do pedido');
-}
-
-function renderQueue(filtered, featured) {
-  const el = document.getElementById('queue-container');
-  const queue = filtered.filter(o => !featured || o.id !== featured.id);
-
-  if (queue.length === 0) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">✅</div><div class="empty-state-text">Sem mais pedidos na fila para hoje.</div></div>`;
-    return;
-  }
-
-  const now = new Date();
-  el.innerHTML = queue.map((o, idx) => {
-    const minsLeft = Math.round((o.datetime - now) / 60000);
-    const isEntrega = o.tipo.toLowerCase().includes('entrega');
-    const tipoClass = isEntrega ? 'entrega' : 'retirada';
-    const tipoLabel = isEntrega ? '🛵 Entrega' : '🛍️ Retirada';
-    const isLate = minsLeft < 0;
-    const isUrgent = minsLeft >= 0 && minsLeft <= 60;
-    const isSoon = minsLeft >= 0 && minsLeft <= 120;
-    const isDelivered = !!o.entregue;
-
-    let cdText = '', cdClass = '';
-    if (isDelivered) { cdText = '✅ Entregue'; cdClass = ''; }
-    else if (isLate) { cdText = 'ATRASADO ' + Math.abs(minsLeft) + 'min'; cdClass = 'urgent'; }
-    else if (minsLeft === 0) { cdText = 'AGORA'; cdClass = 'urgent'; }
-    else if (minsLeft >= 60) { cdText = Math.floor(minsLeft/60)+'h'+(minsLeft%60?(' '+minsLeft%60+'min'):''); cdClass = isSoon ? 'soon' : ''; }
-    else { cdText = minsLeft+'min'; cdClass = isUrgent ? 'urgent' : 'soon'; }
-
-    const itemsHtml = parseItemsHtml(o.pedido);
-
-    const qDeliverBtn = !isDelivered ? `
-      <button class="btn-delivered ${isLate ? 'btn-delivered-late' : ''}" id="deliver-btn-${o.id}"
-        onclick="event.stopPropagation();markDelivered('${o.id}')">
-        ✓ Marcar como ${isEntrega ? 'Entregue' : 'Retirado'}
-      </button>` : `<div style="color:var(--green);font-size:0.78rem;padding:6px 0">✅ Concluído</div>`;
-
-    return `
-      <div class="queue-card ${tipoClass} ${isDelivered ? 'opacity-50' : ''}" onclick="toggleQueueCard(this)"
-           style="${isDelivered ? 'opacity:0.45;filter:saturate(0)' : ''}">
-        <div class="queue-card-top">
-          <span class="queue-pos">#${idx+1}</span>
-          <span class="queue-name">${escHtml(o.nome)}</span>
-          <span class="queue-time">${fmtTime(o.datetime)}</span>
-        </div>
-        <div class="queue-card-bottom">
-          <span class="tag ${tipoClass}">${tipoLabel}</span>
-          ${isLate && !isDelivered ? '<span class="tag urgente">⚠️ Atrasado</span>' : isUrgent && !isDelivered ? '<span class="tag urgente">🔥 Urgente</span>' : ''}
-          <span class="queue-date">${fmtDate(o.datetime)}</span>
-          <span class="queue-countdown ${cdClass}">${cdText}</span>
-        </div>
-        <div class="queue-details">
-          ${itemsHtml}
-          ${o.telefone ? `<div style="margin-top:8px;font-size:0.8rem;color:var(--text3)">📞 ${escHtml(o.telefone)}</div>` : ''}
-          ${o.valor ? `<div style="font-size:0.85rem;color:var(--green);font-weight:700;margin-top:4px">${escHtml(String(o.valor))}</div>` : ''}
-          ${qDeliverBtn}
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-function toggleQueueCard(el) {
-  const det = el.querySelector('.queue-details');
-  det.classList.toggle('open');
-}
-
-// ─── BELL SOUND (Web Audio API) ───────────────────────────
-function playBell(intensity = 1) {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-
-    const ringBell = (delay, freq, gain) => {
-      const osc = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-      const osc2 = ctx.createOscillator();
-      const gainNode2 = ctx.createGain();
-
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
-      osc2.type = 'sine';
-      osc2.frequency.setValueAtTime(freq * 2.76, ctx.currentTime + delay);
-
-      gainNode.gain.setValueAtTime(0, ctx.currentTime + delay);
-      gainNode.gain.linearRampToValueAtTime(gain, ctx.currentTime + delay + 0.01);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 2.5);
-
-      gainNode2.gain.setValueAtTime(0, ctx.currentTime + delay);
-      gainNode2.gain.linearRampToValueAtTime(gain * 0.3, ctx.currentTime + delay + 0.01);
-      gainNode2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 1.5);
-
-      osc.connect(gainNode); gainNode.connect(ctx.destination);
-      osc2.connect(gainNode2); gainNode2.connect(ctx.destination);
-      osc.start(ctx.currentTime + delay);
-      osc2.start(ctx.currentTime + delay);
-      osc.stop(ctx.currentTime + delay + 2.5);
-      osc2.stop(ctx.currentTime + delay + 2.5);
-    };
-
-    // Number of rings based on intensity
-    const rings = intensity === 3 ? 4 : intensity === 2 ? 3 : 2;
-    const freq = intensity === 3 ? 880 : intensity === 2 ? 740 : 660;
-    for (let i = 0; i < rings; i++) ringBell(i * 0.55, freq, 0.6);
-
-    return new Promise(r => setTimeout(r, rings * 550 + 600));
-  } catch(e) {
-    return Promise.resolve();
-  }
-}
-
-// ─── ALERTS ───────────────────────────────────────────────
-// Alert stages in minutes before: 60, 30, 15, 5, 0 (on time), then late every 5min
-const ALERT_STAGES = [60, 30, 15, 5, 0];
-
-function checkAlerts() {
-  const now = new Date();
-
-  orders.forEach(o => {
-    if (o.entregue) return; // skip delivered
-    const diffMs = o.datetime - now;
-    const diffMin = Math.round(diffMs / 60000);
-
-    // Pre-delivery alerts at exact stages
-    ALERT_STAGES.forEach(stage => {
-      const key = `${o.id}_stage_${stage}`;
-      // Fire if within 1 minute window of this stage
-      if (diffMin <= stage && diffMin > stage - 1.5 && !alertedOrders.has(key)) {
-        alertedOrders.add(key);
-        triggerAlert(o, stage, 'pre');
-      }
-    });
-
-    // Late alerts every 5 minutes
-    if (diffMin < 0) {
-      const lateMin = Math.abs(diffMin);
-      const lateKey = `${o.id}_late_${Math.floor(lateMin / 5)}`;
-      if (!alertedOrders.has(lateKey)) {
-        alertedOrders.add(lateKey);
-        triggerAlert(o, lateMin, 'late');
-      }
-    }
-  });
-}
-
-setInterval(checkAlerts, 30000); // check every 30s
-
-async function triggerAlert(order, mins, type) {
-  if (!soundEnabled) return;
-
-  const isEntrega = order.tipo.toLowerCase().includes('entrega');
-  const tipoText = isEntrega ? 'entrega' : 'retirada';
-
-  let bellIntensity, toastTitle, speechText;
-
-  if (type === 'late') {
-    bellIntensity = 3;
-    toastTitle = `⚠️ ATRASADO ${mins} min`;
-    speechText = `Atenção! O pedido de ${order.nome} está atrasado ${mins} minutos. ${isEntrega ? 'Entrega' : 'Retirada'} era às ${fmtTimeSpeak(order.datetime)}. Marque como entregue quando concluir.`;
-  } else if (mins === 0) {
-    bellIntensity = 3;
-    toastTitle = `🔔 AGORA — ${fmtTime(order.datetime)}`;
-    speechText = `${order.nome}! Pedido para ${tipoText} agora! Horário: ${fmtTimeSpeak(order.datetime)}.`;
-  } else if (mins <= 5) {
-    bellIntensity = 3;
-    toastTitle = `🔥 ${mins} MIN — ${fmtTime(order.datetime)}`;
-    speechText = `Urgente! ${mins} minutos para o pedido de ${order.nome}. ${tipoText} às ${fmtTimeSpeak(order.datetime)}.`;
-  } else if (mins <= 15) {
-    bellIntensity = 2;
-    toastTitle = `⏰ ${mins} min — ${fmtTime(order.datetime)}`;
-    speechText = `Atenção! ${mins} minutos para o pedido de ${order.nome}. ${tipoText} às ${fmtTimeSpeak(order.datetime)}.`;
-  } else {
-    bellIntensity = 1;
-    toastTitle = `🔔 ${mins} min — ${fmtTime(order.datetime)}`;
-    speechText = `Lembrete. ${mins} minutos para o pedido de ${order.nome} para ${tipoText} às ${fmtTimeSpeak(order.datetime)}.`;
-  }
-
-  // Show toast immediately
-  showToastMsg(toastTitle, order.nome + (type === 'late' ? ' — ⚠️ Marque como entregue!' : ''));
-
-  // Bell first, then speech
-  await playBell(bellIntensity);
-  speak(speechText);
-
-  renderAll();
-}
-
-// ─── MARK AS DELIVERED ────────────────────────────────────
-async function markDelivered(orderId) {
-  const btn = document.getElementById('deliver-btn-' + orderId);
+async function markDelivered(id) {
+  const btn = document.getElementById('db-' + id);
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Salvando...'; }
-
-  // Update locally
-  const order = orders.find(o => o.id === orderId);
-  if (order) order.entregue = true;
-
-  if (!isDemo) {
-    try {
-      const colStatus = config.cols.status || 'Status';
-      const statusValor = config.cols.statusValor || 'Entregue';
-
-      const url = `https://coda.io/apis/v1/docs/${config.docId}/tables/${encodeURIComponent(config.tableId)}/rows/${orderId}`;
-      const res = await fetch(url, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${config.token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          row: {
-            cells: [{ column: colStatus, value: statusValor }]
-          }
-        })
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        showToastMsg('❌ Erro ao salvar', err.message || 'Tente novamente');
-        if (order) order.entregue = false;
-        if (btn) { btn.disabled = false; btn.textContent = '✓ Marcar como Entregue'; }
-        return;
-      }
-
-      showToastMsg('✅ Entregue!', order ? order.nome : '');
-      speak('Pedido marcado como entregue!');
-    } catch(e) {
-      showToastMsg('❌ Erro de conexão', e.message);
-      if (order) order.entregue = false;
+  const o = orders.find(x => x.id === id);
+  if (o) o.entregue = true;
+  try {
+    const url = `https://coda.io/apis/v1/docs/${CFG.docId}/tables/${encodeURIComponent(CFG.tableId)}/rows/${id}`;
+    const res = await fetch(url, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${CFG.token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ row: { cells: [{ column: CFG.cols.status, value: CFG.cols.statusValor }] } })
+    });
+    if (!res.ok) {
+      const e = await res.json().catch(() => ({}));
+      showToast('❌ Erro ao salvar', e.message || '');
+      if (o) o.entregue = false;
       if (btn) { btn.disabled = false; btn.textContent = '✓ Marcar como Entregue'; }
       return;
     }
-  } else {
-    showToastMsg('✅ Entregue! (demo)', order ? order.nome : '');
+    showToast('✅ Concluído!', o ? o.nome : '');
     speak('Pedido marcado como entregue!');
+  } catch(e) {
+    showToast('❌ Erro de conexão', e.message);
+    if (o) o.entregue = false;
+    if (btn) { btn.disabled = false; btn.textContent = '✓ Marcar como Entregue'; }
+    return;
   }
-
   renderAll();
 }
 
-// ─── SPEECH ───────────────────────────────────────────────
-let audioUnlocked = false;
-let currentAudio = null;
-
-function getAudioCtx() {
-  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  if (audioCtx.state === 'suspended') audioCtx.resume();
-  return audioCtx;
-}
-
-function unlockAudio() {
-  getAudioCtx();
-  audioUnlocked = true;
-  document.getElementById('audio-unlock-btn').style.display = 'none';
-  playBell(1).then(() => speak('Som ativado! Os alertas estão funcionando.'));
-}
-
-function speak(text) {
-  if (!soundEnabled) return;
-
-  // Try speechSynthesis first (works on desktop)
-  if (window.speechSynthesis) {
-    try {
-      window.speechSynthesis.cancel();
-      const utt = new SpeechSynthesisUtterance(text);
-      utt.lang = 'pt-BR';
-      utt.rate = 0.88;
-      utt.pitch = 1;
-      utt.volume = 1;
-      const voices = window.speechSynthesis.getVoices();
-      const pt = voices.find(v => v.lang === 'pt-BR') || voices.find(v => v.lang.startsWith('pt'));
-      if (pt) utt.voice = pt;
-
-      // If speechSynthesis doesn't start in 1s, fall back to beep pattern
-      let started = false;
-      utt.onstart = () => { started = true; };
-      setTimeout(() => { if (!started) playAlertBeeps(text); }, 1000);
-      window.speechSynthesis.speak(utt);
-      return;
-    } catch(e) {}
-  }
-
-  playAlertBeeps(text);
-}
-
-// Fallback: play a distinctive beep melody to indicate urgency level
-function playAlertBeeps(text) {
-  const ctx = getAudioCtx();
-  const isUrgent = text.includes('Urgente') || text.includes('AGORA') || text.includes('atrasado');
-  const isMedium = text.includes('15 minutos') || text.includes('30 minutos');
-
-  const notes = isUrgent
-    ? [880, 0, 880, 0, 880, 0, 660]
-    : isMedium
-    ? [660, 0, 880]
-    : [660, 880];
-
-  let t = ctx.currentTime + 0.1;
-  notes.forEach(freq => {
-    if (freq === 0) { t += 0.1; return; }
-    const osc = ctx.createOscillator();
-    const g = ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.value = freq;
-    g.gain.setValueAtTime(0.4, t);
-    g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
-    osc.connect(g); g.connect(ctx.destination);
-    osc.start(t); osc.stop(t + 0.25);
-    t += 0.3;
-  });
-}
-
-let audioUnlocked = false;
-
-function toggleSound() {
-  soundEnabled = !soundEnabled;
-  document.getElementById('sound-dot').className = 'sound-dot' + (soundEnabled ? '' : ' off');
-  document.getElementById('sound-label').textContent = soundEnabled ? 'Som' : 'Mudo';
-  if (soundEnabled) {
-    getAudioCtx();
-    playBell(1).then(() => speak('Som ativado!'));
-  }
-}
-// ─── TOAST ────────────────────────────────────────────────
-let toastTimeout = null;
-function showToastMsg(title, sub) {
-  document.getElementById('toast-title').textContent = title;
-  document.getElementById('toast-sub').textContent = sub;
-  const t = document.getElementById('toast');
-  t.classList.add('show');
-  if (toastTimeout) clearTimeout(toastTimeout);
-  toastTimeout = setTimeout(hideToast, 6000);
-}
-
-function hideToast() {
-  document.getElementById('toast').classList.remove('show');
-}
-
-// ─── FILTER ───────────────────────────────────────────────
+// ── RENDER ──────────────────────────────────────────────
 function setFilter(f, btn) {
-  currentFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  filter = f;
+  document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   renderAll();
 }
 
-// ─── HELPERS ──────────────────────────────────────────────
-function fmtTime(dt) {
-  if (!dt) return '—';
-  return new Date(dt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-}
-
-function fmtTimeSpeak(dt) {
-  if (!dt) return '';
-  return new Date(dt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }).replace(':', ' horas e ') + ' minutos';
-}
-
-function fmtDate(dt) {
-  if (!dt) return '—';
-  return new Date(dt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-}
-
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-function parseItemsHtml(pedidoText) {
-  if (!pedidoText) return '<div style="color:var(--text3);font-size:0.8rem;">Sem detalhes</div>';
-  const lines = String(pedidoText).split('\n');
-  let html = '';
-  lines.forEach(line => {
-    line = line.trim();
-    if (!line) return;
-    // category header (ends with : and no leading number)
-    if (/^[^0-9].+:$/.test(line)) {
-      html += `<div class="item-category">${escHtml(line.replace(':',''))}</div>`;
-    } else if (/^\d/.test(line)) {
-      // item with quantity
-      const m = line.match(/^(\d+)\s+(.+)/);
-      if (m) {
-        html += `<div class="item-row"><span class="item-qty">${m[1]}</span><span class="item-name">${escHtml(m[2])}</span></div>`;
-      } else {
-        html += `<div class="item-row"><span class="item-name">${escHtml(line)}</span></div>`;
-      }
-    } else {
-      html += `<div class="item-row"><span class="item-name" style="color:var(--text3);font-size:0.78rem;font-style:italic">${escHtml(line)}</span></div>`;
-    }
+function renderAll() {
+  const now = new Date();
+  const upcoming = orders.filter(o => !o.entregue && o.datetime >= now);
+  const lateUndel = orders.filter(o => !o.entregue && o.datetime < now).sort((a,b) => b.datetime - a.datetime);
+  const featured = upcoming[0] || lateUndel[0] || null;
+  renderFeatured(featured, now);
+  const filtered = orders.filter(o => {
+    if (filter === 'retirada') return o.tipo.toLowerCase().includes('retirada');
+    if (filter === 'entrega') return o.tipo.toLowerCase().includes('entrega');
+    if (filter === 'urgente') { const m = (o.datetime - now) / 60000; return m >= 0 && m <= 60; }
+    return true;
   });
-  return html || '<div style="color:var(--text3);font-size:0.8rem;">' + escHtml(pedidoText) + '</div>';
+  renderQueue(filtered.filter(o => !featured || o.id !== featured.id), featured, now);
 }
 
-function updateRefreshLabel(txt) {
-  document.getElementById('refresh-indicator').textContent = txt;
+function renderFeatured(order, now) {
+  const el = document.getElementById('featured');
+  if (!order) { el.innerHTML = '<div class="no-fc">Nenhum pedido para hoje ainda 🎉</div>'; return; }
+  const mins = Math.round((order.datetime - now) / 60000);
+  const isLate = mins < 0;
+  const isEntrega = order.tipo.toLowerCase().includes('entrega');
+  const timerTxt = isLate ? `ATRASADO ${Math.abs(mins)}min`
+    : mins === 0 ? 'AGORA!'
+    : mins >= 60 ? `${Math.floor(mins/60)}h ${mins%60}min`
+    : `${mins} min`;
+  const timerCls = (isLate || mins <= 15) ? 'fc-timer-val urg' : 'fc-timer-val';
+  const items = parseItems(order.pedido);
+  el.innerHTML = `
+    <div class="fc">
+      <div class="fc-hdr">
+        <span class="fc-badge">PRÓXIMO</span>
+        <span class="fc-name">${esc(order.nome)}</span>
+        <span class="fc-tipo">${isEntrega?'🛵 Entrega':'🛍️ Retirada'}</span>
+      </div>
+      ${isLate && !order.entregue ? `<div class="fc-late"><span style="font-size:1.2rem">⚠️</span><span class="fc-late-txt">Pedido atrasado! Marque como entregue.</span><span class="fc-late-min">${Math.abs(mins)}min</span></div>` : ''}
+      <div class="fc-body">
+        <div class="fc-box"><div class="fc-box-label">Horário</div><div class="fc-box-val hl">${fmtTime(order.datetime)}</div></div>
+        <div class="fc-box"><div class="fc-box-label">Data</div><div class="fc-box-val">${fmtDate(order.datetime)}</div></div>
+        <div class="fc-box"><div class="fc-box-label">Valor</div><div class="fc-box-val">${esc(String(order.valor||'—'))}</div></div>
+        <div class="fc-timer">
+          <div class="fc-timer-lbl">${isLate?'⚠️ Atrasado':'⏳ Tempo restante'}</div>
+          <div class="${timerCls}" id="ftimer">${timerTxt}</div>
+        </div>
+      </div>
+      <div class="items-toggle" onclick="this.classList.toggle('open');document.getElementById('fitems').classList.toggle('open')">
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="2,5 7,10 12,5"/></svg>
+        Ver itens do pedido
+      </div>
+      <div class="items-list" id="fitems">${items}</div>
+      <div class="fc-foot">
+        <div class="fc-phone">📞 ${esc(order.telefone||'—')}</div>
+        <div class="fc-total">${esc(String(order.valor||''))}</div>
+      </div>
+      ${!order.entregue
+        ? `<button class="btn-deliver${isLate?' late':''}" id="db-${order.id}" onclick="markDelivered('${order.id}')">✓ Marcar como ${isEntrega?'Entregue':'Retirado'}</button>`
+        : `<div style="text-align:center;color:var(--green);font-size:.82rem;padding:10px 0">✅ Concluído</div>`}
+    </div>`;
+  startFeaturedTimer(order);
 }
 
-// ─── BOOT ─────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', function() {
-  config = {
-    token: 'c2df9327-a40c-4716-9f59-c40620d691ef',
-    docId: 'Wq8ktEEI3N',
-    tableId: 'Pedidos Base',
-    cols: {
-      nome: 'Cliente',
-      data: 'Data e Hora',
-      tipo: 'Entrega/Retirada',
-      pedido: 'Nota',
-      telefone: 'Número',
-      valor: 'Valor Total',
-      status: 'Status',
-      statusValor: 'Entregue',
-    },
-    alertHours: 1
-  };
-  isDemo = false;
-  startApp();
-});
+function startFeaturedTimer(order) {
+  if (window._fti) clearInterval(window._fti);
+  window._fti = setInterval(() => {
+    const el = document.getElementById('ftimer');
+    if (!el) { clearInterval(window._fti); return; }
+    const now = new Date();
+    const mins = Math.round((order.datetime - now) / 60000);
+    const isLate = mins < 0;
+    el.className = (isLate || mins <= 15) ? 'fc-timer-val urg' : 'fc-timer-val';
+    el.textContent = isLate ? `ATRASADO ${Math.abs(mins)}min`
+      : mins === 0 ? 'AGORA!'
+      : mins >= 60 ? `${Math.floor(mins/60)}h ${mins%60}min`
+      : `${mins} min`;
+  }, 15000);
+}
 
-// ─── PWA — Service Worker ──────────────────────────────────
+function renderQueue(list, featured, now) {
+  const el = document.getElementById('queue');
+  if (!list.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">✅</div>Sem mais pedidos na fila.</div>';
+    return;
+  }
+  el.innerHTML = list.map((o, i) => {
+    const mins = Math.round((o.datetime - now) / 60000);
+    const isLate = mins < 0;
+    const isEntrega = o.tipo.toLowerCase().includes('entrega');
+    const tc = isEntrega ? 'entrega' : 'retirada';
+    const isUrg = mins >= 0 && mins <= 60;
+    let cd = '', cdcls = '';
+    if (o.entregue) { cd = '✅ Entregue'; }
+    else if (isLate) { cd = `ATRASADO ${Math.abs(mins)}min`; cdcls = 'urg'; }
+    else if (mins === 0) { cd = 'AGORA'; cdcls = 'urg'; }
+    else if (mins >= 60) { cd = `${Math.floor(mins/60)}h${mins%60?` ${mins%60}min`:''}`; cdcls = ''; }
+    else { cd = `${mins}min`; cdcls = isUrg ? 'urg' : 'soon'; }
+    const items = parseItems(o.pedido);
+    return `
+      <div class="qcard ${tc}" style="${o.entregue?'opacity:.4;filter:saturate(0)':''}" onclick="this.querySelector('.qdetails').classList.toggle('open')">
+        <div class="qcard-top">
+          <span class="qpos">#${i+1}</span>
+          <span class="qname">${esc(o.nome)}</span>
+          <span class="qtime">${fmtTime(o.datetime)}</span>
+        </div>
+        <div class="qcard-bot">
+          <span class="tag ${tc}">${isEntrega?'🛵 Entrega':'🛍️ Retirada'}</span>
+          ${isLate&&!o.entregue?'<span class="tag urgente">⚠️ Atrasado</span>':isUrg&&!o.entregue?'<span class="tag urgente">🔥 Urgente</span>':''}
+          <span class="qdate">${fmtDate(o.datetime)}</span>
+          <span class="qcd ${cdcls}">${cd}</span>
+        </div>
+        <div class="qdetails">
+          ${items}
+          ${o.telefone?`<div style="margin-top:7px;font-size:.78rem;color:var(--text3)">📞 ${esc(o.telefone)}</div>`:''}
+          ${o.valor?`<div style="font-size:.82rem;color:var(--green);font-weight:700;margin-top:3px">${esc(String(o.valor))}</div>`:''}
+          ${!o.entregue?`<button class="btn-qdeliver${isLate?' late':''}" id="db-${o.id}" onclick="event.stopPropagation();markDelivered('${o.id}')">✓ Marcar como ${isEntrega?'Entregue':'Retirado'}</button>`
+          :'<div style="color:var(--green);font-size:.75rem;padding:5px 0">✅ Concluído</div>'}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── HELPERS ─────────────────────────────────────────────
+function fmtTime(dt) { return dt ? new Date(dt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '—'; }
+function fmtDate(dt) { return dt ? new Date(dt).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) : '—'; }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function parseItems(txt) {
+  if (!txt) return '<div style="color:var(--text3);font-size:.78rem">Sem detalhes</div>';
+  return String(txt).split('\n').map(l => {
+    l = l.trim(); if (!l) return '';
+    if (/^[^0-9].+:$/.test(l)) return `<div class="icat">${esc(l.replace(':',''))}</div>`;
+    const m = l.match(/^(\d+)\s+(.+)/);
+    if (m) return `<div class="irow"><span class="iqty">${m[1]}</span><span class="iname">${esc(m[2])}</span></div>`;
+    return `<div class="irow"><span class="iname" style="font-size:.75rem;font-style:italic;color:var(--text3)">${esc(l)}</span></div>`;
+  }).join('');
+}
+
+// ── BOOT ────────────────────────────────────────────────
+fetchOrders();
+setInterval(fetchOrders, 2 * 60 * 1000);
+setInterval(renderAll, 30000);
+
+// Unlock audio on first interaction
+['click','keydown','touchstart'].forEach(ev =>
+  document.addEventListener(ev, function h() {
+    if (!audioUnlocked) unlockAudio();
+    document.removeEventListener(ev, h);
+  }, { once: true })
+);
+
+// PWA Service Worker
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js')
-    .then(() => console.log('✅ Service Worker registrado'))
-    .catch(e => console.warn('SW não registrado:', e));
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
 }
-
-// Unlock audio on first ANY interaction with the page
-document.addEventListener('click', function onFirstClick() {
-  if (!audioUnlocked) unlockAudio();
-  document.removeEventListener('click', onFirstClick);
-}, { once: true });
-
-document.addEventListener('keydown', function onFirstKey() {
-  if (!audioUnlocked) unlockAudio();
-  document.removeEventListener('keydown', onFirstKey);
-}, { once: true });
-
 </script>
 </body>
 </html>
