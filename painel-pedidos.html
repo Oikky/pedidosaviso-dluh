@@ -164,7 +164,63 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 .btn-qdeliver.late { background:var(--red-soft); border-color:var(--red); color:var(--red); }
 .btn-qdeliver.late:hover { background:var(--red); color:#fff; }
 
-/* TOAST */
+/* ── PRINT STYLES ─────────────────────────────────────── */
+.btn-print {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: var(--rs);
+  color: var(--text2); font-family: 'Syne', sans-serif; font-weight: 700; font-size: .9rem;
+  padding: 9px 14px; cursor: pointer; transition: all .2s;
+  display: flex; align-items: center; gap: 6px;
+}
+.btn-print:hover { border-color: var(--text); color: var(--text); }
+
+/* Recibo oculto na tela, visível só na impressão */
+#print-area {
+  display: none;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  width: 72mm;
+  padding: 4mm;
+  color: #000;
+  background: #fff;
+}
+
+#print-area .p-logo {
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 2mm;
+}
+
+#print-area .p-sub {
+  text-align: center;
+  font-size: 11px;
+  margin-bottom: 3mm;
+}
+
+#print-area .p-div {
+  border-top: 1px dashed #000;
+  margin: 2mm 0;
+}
+
+#print-area .p-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin: 1mm 0;
+}
+
+#print-area .p-label { font-weight: bold; }
+#print-area .p-section { font-weight: bold; margin-top: 2mm; font-size: 12px; }
+#print-area .p-item { margin-left: 2mm; font-size: 12px; }
+#print-area .p-total { font-size: 15px; font-weight: bold; text-align: right; margin-top: 2mm; }
+#print-area .p-footer { text-align: center; font-size: 11px; margin-top: 3mm; }
+
+/* Na hora de imprimir, esconde tudo menos o recibo */
+@media print {
+  body > * { display: none !important; }
+  #print-area { display: block !important; width: 72mm; margin: 0; padding: 2mm; }
+  @page { margin: 0; size: 80mm auto; }
+}
 .toast-wrap { position:fixed; top:0; left:0; right:0; z-index:999; pointer-events:none; }
 .toast {
   background:linear-gradient(135deg,#f97316,#ea580c); color:#fff;
@@ -226,6 +282,9 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
     </div>
   </div>
 </div>
+
+<!-- ÁREA DE IMPRESSÃO (invisível na tela) -->
+<div id="print-area"></div>
 
 <!-- TOAST -->
 <div class="toast-wrap">
@@ -572,6 +631,7 @@ function renderFeatured(order, now) {
       ${!order.entregue
         ? `<button class="btn-deliver${isLate?' late':''}" id="db-${order.id}" onclick="markDelivered('${order.id}')">✓ Marcar como ${isEntrega?'Entregue':'Retirado'}</button>`
         : `<div style="text-align:center;color:var(--green);font-size:.82rem;padding:10px 0">✅ Concluído</div>`}
+      <button class="btn-print" style="margin:0 18px 16px;width:calc(100% - 36px);justify-content:center" onclick="printOrder('${order.id}')">🖨️ Imprimir Nota</button>
     </div>`;
   startFeaturedTimer(order);
 }
@@ -630,6 +690,7 @@ function renderQueue(list, featured, now) {
           ${o.valor?`<div style="font-size:.82rem;color:var(--green);font-weight:700;margin-top:3px">${esc(String(o.valor))}</div>`:''}
           ${!o.entregue?`<button class="btn-qdeliver${isLate?' late':''}" id="db-${o.id}" onclick="event.stopPropagation();markDelivered('${o.id}')">✓ Marcar como ${isEntrega?'Entregue':'Retirado'}</button>`
           :'<div style="color:var(--green);font-size:.75rem;padding:5px 0">✅ Concluído</div>'}
+          <button class="btn-print" style="margin-top:8px" onclick="event.stopPropagation();printOrder('${o.id}')">🖨️ Imprimir</button>
         </div>
       </div>`;
   }).join('');
@@ -648,6 +709,49 @@ function parseItems(txt) {
     const m = l.match(/^(\d+)\s+(.+)/);
     if (m) return `<div class="irow"><span class="iqty">${m[1]}</span><span class="iname">${esc(m[2])}</span></div>`;
     return `<div class="irow"><span class="iname" style="font-size:.75rem;font-style:italic;color:var(--text3)">${esc(l)}</span></div>`;
+  }).join('');
+}
+
+// ── PRINT ───────────────────────────────────────────────
+function printOrder(id) {
+  const o = orders.find(x => x.id === id);
+  if (!o) return;
+
+  if (!confirm(`Imprimir nota de ${o.nome}?`)) return;
+
+  const isEntrega = o.tipo.toLowerCase().includes('entrega');
+  const tipoLabel = isEntrega ? '🛵 ENTREGA' : '🛍️ RETIRADA';
+  const itemsHtml = buildPrintItems(o.pedido);
+
+  document.getElementById('print-area').innerHTML = `
+    <div class="p-logo">D'Luh Festas 🍰</div>
+    <div class="p-sub">Salgados & Doces para festas</div>
+    <div class="p-div"></div>
+
+    <div class="p-row"><span class="p-label">Cliente:</span><span>${esc(o.nome)}</span></div>
+    <div class="p-row"><span class="p-label">Fone:</span><span>${esc(o.telefone||'—')}</span></div>
+    <div class="p-row"><span class="p-label">Tipo:</span><span>${tipoLabel}</span></div>
+    <div class="p-row"><span class="p-label">Data/Hora:</span><span>${fmtDate(o.datetime)} ${fmtTime(o.datetime)}</span></div>
+
+    <div class="p-div"></div>
+    <div class="p-section">PEDIDO:</div>
+    ${itemsHtml}
+    <div class="p-div"></div>
+
+    <div class="p-total">Total: ${esc(String(o.valor||'—'))}</div>
+    <div class="p-div"></div>
+    <div class="p-footer">D'Luh Festas agradece seu pedido! ❤️</div>
+  `;
+
+  setTimeout(() => window.print(), 100);
+}
+
+function buildPrintItems(txt) {
+  if (!txt) return '<div class="p-item">—</div>';
+  return String(txt).split('\n').map(l => {
+    l = l.trim(); if (!l) return '';
+    if (/^[^0-9].+:$/.test(l)) return `<div class="p-section">${esc(l)}</div>`;
+    return `<div class="p-item">${esc(l)}</div>`;
   }).join('');
 }
 
