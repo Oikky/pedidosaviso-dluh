@@ -226,6 +226,25 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
   #print-area { display: block !important; width: 72mm; margin: 0; padding: 2mm; }
   @page { margin: 0; size: 80mm auto; }
 }
+.dq-opt {
+  padding: 8px 10px; border-radius: var(--rs); cursor: pointer;
+  font-size: .88rem; color: var(--text2); transition: all .15s;
+}
+.dq-opt:hover { background: var(--surface2); color: var(--text); }
+.dq-opt.active { color: var(--accent); font-weight: 600; }
+.cal-day {
+  padding: 5px 2px; border-radius: 6px; cursor: pointer;
+  font-size: .78rem; color: var(--text2); transition: all .15s; text-align:center;
+}
+.cal-day:hover { background: var(--surface2); color: var(--text); }
+.cal-day.today { color: var(--accent); font-weight: 700; }
+.cal-day.selected { background: var(--accent) !important; color: #fff !important; font-weight: 700; }
+.cal-day.has-orders { color: var(--text); }
+.cal-day.has-orders::after {
+  content:'•'; display:block; color:var(--accent2); font-size:.6rem; line-height:0; margin-top:2px;
+}
+.cal-day.other-month { color: var(--text3); }
+.cal-header { color: var(--text3); font-size:.72rem; font-weight:700; padding:3px 0; text-align:center; }
 .toast-wrap { position:fixed; top:0; left:0; right:0; z-index:999; pointer-events:none; }
 .toast {
   background:linear-gradient(135deg,#f97316,#ea580c); color:#fff;
@@ -260,9 +279,28 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
       <div class="sdot" id="sdot"></div>
       <span id="slabel">Som</span>
     </button>
-    <div style="position:relative">
-      <button class="btn-ic" id="date-filter-btn" onclick="showDatePicker()">📅 Hoje</button>
-      <select id="date-select" onchange="onDateSelect(this.value)" style="display:none;position:absolute;right:0;top:110%;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);padding:8px;font-size:.9rem;z-index:200;min-width:180px;cursor:pointer"></select>
+    <div style="position:relative" id="date-picker-wrap">
+      <button class="btn-ic" id="date-filter-btn" onclick="toggleDatePicker()">📅 <span id="date-filter-label">Hoje</span></button>
+      <div id="date-picker" style="display:none;position:absolute;right:0;top:110%;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);z-index:300;width:300px;box-shadow:0 8px 32px rgba(0,0,0,.5);overflow:hidden">
+        <!-- Opções rápidas -->
+        <div style="padding:8px;border-bottom:1px solid var(--border)">
+          <div class="dq-opt" onclick="setDateFilter('hoje')">📅 Hoje</div>
+          <div class="dq-opt" onclick="setDateFilter('amanha')">⏭️ Amanhã</div>
+          <div class="dq-opt" onclick="setDateFilter('semana')">📆 Próximos 7 dias</div>
+          <div class="dq-opt" onclick="setDateFilter('mes')">🗓️ Este mês</div>
+          <div class="dq-opt" onclick="setDateFilter('todos')">📋 Todos os pedidos</div>
+          <div class="dq-opt" onclick="setDateFilter('passados')">⏮️ Pedidos passados</div>
+        </div>
+        <!-- Calendário -->
+        <div style="padding:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <button onclick="calNav(-1)" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:1.1rem;padding:4px 8px">‹</button>
+            <span id="cal-title" style="font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem"></span>
+            <button onclick="calNav(1)" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:1.1rem;padding:4px 8px">›</button>
+          </div>
+          <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:.78rem"></div>
+        </div>
+      </div>
     </div>
     <button class="btn-ic" onclick="testarVoz()" title="Testar voz">🗣️</button>
     <button class="btn-ic" onclick="fetchOrders()" title="Atualizar">⟳</button>
@@ -621,62 +659,124 @@ async function markDelivered(id) {
 }
 
 // ── RENDER ──────────────────────────────────────────────
+// ── DATE PICKER ─────────────────────────────────────────
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+
+function toggleDatePicker() {
+  const dp = document.getElementById('date-picker');
+  const isOpen = dp.style.display !== 'none';
+  dp.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) renderCal();
+}
+
+// Close when clicking outside
+document.addEventListener('click', e => {
+  const wrap = document.getElementById('date-picker-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('date-picker').style.display = 'none';
+  }
+});
+
+function calNav(dir) {
+  calMonth += dir;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCal();
+}
+
+function renderCal() {
+  const dias = ['D','S','T','Q','Q','S','S'];
+  const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  document.getElementById('cal-title').textContent = `${meses[calMonth]} ${calYear}`;
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const daysInPrev = new Date(calYear, calMonth, 0).getDate();
+
+  // Dates that have orders
+  const orderDates = new Set(allOrders.map(o => {
+    const d = new Date(o.datetime);
+    return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+  }));
+
+  let html = dias.map(d => `<div class="cal-header">${d}</div>`).join('');
+
+  // Prev month days
+  for (let i = firstDay - 1; i >= 0; i--) {
+    html += `<div class="cal-day other-month">${daysInPrev - i}</div>`;
+  }
+
+  // Current month days
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(calYear, calMonth, d);
+    const dateKey = `${calYear}-${calMonth}-${d}`;
+    const isToday = date.getTime() === today.getTime();
+    const hasOrders = orderDates.has(dateKey);
+    const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isSelected = selectedDate === dateStr;
+
+    let cls = 'cal-day';
+    if (isToday) cls += ' today';
+    if (hasOrders) cls += ' has-orders';
+    if (isSelected) cls += ' selected';
+
+    html += `<div class="${cls}" onclick="selectCalDate('${dateStr}')">${d}</div>`;
+  }
+
+  document.getElementById('cal-grid').innerHTML = html;
+
+  // Highlight active quick option
+  document.querySelectorAll('.dq-opt').forEach(el => el.classList.remove('active'));
+  const quickMap = { hoje:'Hoje', amanha:'Amanhã', semana:'Próximos 7 dias', mes:'Este mês', todos:'Todos os pedidos', passados:'Pedidos passados' };
+  document.querySelectorAll('.dq-opt').forEach(el => {
+    if (Object.values(quickMap).some(v => el.textContent.includes(v.split(' ')[1] || v))) {
+      // skip complex match
+    }
+  });
+}
+
+function selectCalDate(dateStr) {
+  selectedDate = dateStr;
+  const d = new Date(dateStr + 'T00:00:00');
+  document.getElementById('date-filter-label').textContent =
+    d.toLocaleDateString('pt-BR', {weekday:'short', day:'2-digit', month:'2-digit'});
+  document.getElementById('date-picker').style.display = 'none';
+  applyDateFilter();
+}
+
 function applyDateFilter() {
   const today = new Date(); today.setHours(0,0,0,0);
+  const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate()+1);
+  const in7 = new Date(today); in7.setDate(in7.getDate()+7);
+  const endMonth = new Date(today.getFullYear(), today.getMonth()+1, 0);
+
   if (selectedDate === 'hoje') {
-    orders = allOrders.filter(o => {
-      const d = new Date(o.datetime); d.setHours(0,0,0,0);
-      return d.getTime() === today.getTime();
-    });
+    orders = allOrders.filter(o => { const d=new Date(o.datetime); d.setHours(0,0,0,0); return d.getTime()===today.getTime(); });
+  } else if (selectedDate === 'amanha') {
+    orders = allOrders.filter(o => { const d=new Date(o.datetime); d.setHours(0,0,0,0); return d.getTime()===tomorrow.getTime(); });
+  } else if (selectedDate === 'semana') {
+    orders = allOrders.filter(o => { const d=new Date(o.datetime); return d>=today && d<=in7; });
+  } else if (selectedDate === 'mes') {
+    orders = allOrders.filter(o => { const d=new Date(o.datetime); return d>=today && d<=endMonth; });
   } else if (selectedDate === 'todos') {
     orders = [...allOrders];
+  } else if (selectedDate === 'passados') {
+    orders = allOrders.filter(o => new Date(o.datetime) < today).reverse();
   } else {
     const sel = new Date(selectedDate + 'T00:00:00');
-    orders = allOrders.filter(o => {
-      const d = new Date(o.datetime); d.setHours(0,0,0,0);
-      return d.getTime() === sel.getTime();
-    });
+    orders = allOrders.filter(o => { const d=new Date(o.datetime); d.setHours(0,0,0,0); return d.getTime()===sel.getTime(); });
   }
   renderAll();
 }
 
 function setDateFilter(val) {
   selectedDate = val;
-  // Update date btn label
-  const btn = document.getElementById('date-filter-btn');
-  if (val === 'hoje') btn.textContent = '📅 Hoje';
-  else if (val === 'todos') btn.textContent = '📅 Todos';
-  else btn.textContent = '📅 ' + new Date(val + 'T00:00:00').toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit'});
+  const labels = { hoje:'Hoje', amanha:'Amanhã', semana:'Próx. 7 dias', mes:'Este mês', todos:'Todos', passados:'Passados' };
+  document.getElementById('date-filter-label').textContent = labels[val] || val;
+  document.getElementById('date-picker').style.display = 'none';
   applyDateFilter();
-}
-
-// Build unique dates from allOrders for date picker
-function showDatePicker() {
-  const dates = [...new Set(allOrders.map(o => {
-    const d = new Date(o.datetime);
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  }))].sort();
-
-  const today = new Date();
-  const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-
-  const opts = [
-    `<option value="hoje" ${selectedDate==='hoje'?'selected':''}>📅 Hoje</option>`,
-    `<option value="todos" ${selectedDate==='todos'?'selected':''}>📅 Todos os dias</option>`,
-    ...dates.map(d => {
-      const label = new Date(d+'T00:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'});
-      return `<option value="${d}" ${selectedDate===d?'selected':''}>${label}</option>`;
-    })
-  ].join('');
-
-  const sel = document.getElementById('date-select');
-  sel.innerHTML = opts;
-  sel.style.display = sel.style.display === 'none' ? 'block' : 'none';
-}
-
-function onDateSelect(val) {
-  document.getElementById('date-select').style.display = 'none';
-  setDateFilter(val);
 }
 
 function setFilter(f, btn) {
