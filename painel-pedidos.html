@@ -315,7 +315,8 @@ const CFG = {
   tableId: 'Pedidos Base',
   cols: {
     nome: 'c-qNsNbVHKNI',
-    data: 'c-Ogq-fbi4HJ',
+    data: 'c-0y6_X-_T7g',
+    hora: 'c-bL3KECWBkd',
     tipo: 'c-NWtelSDmAE',
     pedido: 'c-txX8tge0sr',
     telefone: 'c-WhdvD5qzPB',
@@ -542,41 +543,40 @@ async function fetchOrders() {
 
 function parseRows(rows) {
   const c = CFG.cols;
-  const today = new Date(); today.setHours(0,0,0,0);
   return rows.map((row, i) => {
     const v = row.values || {};
     let dt = null;
-    const raw = v[c.data];
-    if (raw) {
-      if (typeof raw === 'number') {
-        // Timestamp em milissegundos
-        dt = new Date(raw);
-      } else {
-        const s = String(raw).trim();
-        // ISO: 2026-05-16T18:44:00 ou 2026-05-16 18:44
+
+    try {
+      const rawData = v[c.data];
+      const rawHora = v[c.hora];
+
+      if (rawData) {
+        const s = String(rawData).trim();
+        let dateOnly = null;
+
         if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
-          dt = new Date(s.replace(' ', 'T'));
+          dateOnly = new Date(s.split('T')[0] + 'T00:00:00');
+        } else if (/^\d{2}\/\d{2}\/\d{4}/.test(s)) {
+          const m = s.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+          if (m) dateOnly = new Date(+m[3], +m[2]-1, +m[1]);
+        } else {
+          dateOnly = new Date(s);
         }
-        // BR com hora: 16/05/2026 18:44 ou 16/05/2026, 18:44
-        else if (/^\d{2}\/\d{2}\/\d{4}/.test(s)) {
-          const m = s.match(/(\d{2})\/(\d{2})\/(\d{4})[\s,T]+(\d{2}):(\d{2})/);
-          if (m) dt = new Date(+m[3], +m[2]-1, +m[1], +m[4], +m[5]);
-          else {
-            // Só data sem hora: 16/05/2026
-            const d = s.match(/(\d{2})\/(\d{2})\/(\d{4})/);
-            if (d) dt = new Date(+d[3], +d[2]-1, +d[1], 0, 0);
+
+        if (dateOnly && !isNaN(dateOnly)) {
+          if (rawHora) {
+            const hm = String(rawHora).trim().match(/(\d{1,2}):(\d{2})/);
+            if (hm) dateOnly.setHours(+hm[1], +hm[2], 0, 0);
           }
-        }
-        // Fallback genérico
-        else {
-          dt = new Date(s);
+          dt = dateOnly;
         }
       }
-    }
-    if (!dt || isNaN(dt)) {
-      console.warn('Data inválida para pedido:', v[c.nome], '| raw:', v[c.data]);
-      return null;
-    }
+    } catch(e) { /* ignora silenciosamente */ }
+
+    // Sem data válida — pula sem travar
+    if (!dt || isNaN(dt)) return null;
+
     return {
       id: row.id || String(i),
       nome: v[c.nome] || '(sem nome)',
