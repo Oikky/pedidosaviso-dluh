@@ -314,13 +314,13 @@ const CFG = {
   docId: 'Wq8ktEEI3N',
   tableId: 'Pedidos Base',
   cols: {
-    nome: 'Cliente',
-    data: 'Data e Hora',
-    tipo: 'Entrega/Retirada',
-    pedido: 'Nota',
-    telefone: 'Número',
-    valor: 'Valor Total',
-    status: 'Entregue',
+    nome: 'c-qNsNbVHKNI',
+    data: 'c-Ogq-fbi4HJ',
+    tipo: 'c-NWtelSDmAE',
+    pedido: 'c-txX8tge0sr',
+    telefone: 'c-WhdvD5qzPB',
+    valor: 'c-lTihbeP5Cj',
+    status: 'c-SpdhR0ZMGd',
     statusValor: 'Entregue'
   },
   alertHours: 1
@@ -513,7 +513,7 @@ setInterval(checkAlerts, 30000);
 async function fetchOrders() {
   document.getElementById('rlabel').textContent = '⟳ Atualizando...';
   try {
-    const url = `https://coda.io/apis/v1/docs/${CFG.docId}/tables/${encodeURIComponent(CFG.tableId)}/rows?useColumnNames=true&limit=200`;
+    const url = `https://coda.io/apis/v1/docs/${CFG.docId}/tables/${encodeURIComponent(CFG.tableId)}/rows?limit=200`;
     const res = await fetch(url, { headers: { Authorization: `Bearer ${CFG.token}` } });
     if (!res.ok) {
       const e = await res.json().catch(() => ({}));
@@ -600,7 +600,7 @@ async function markDelivered(id) {
     const res = await fetch(url, {
       method: 'PUT',
       headers: { Authorization: `Bearer ${CFG.token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ row: { cells: [{ column: CFG.cols.status, value: CFG.cols.statusValor }] } })
+      body: JSON.stringify({ row: { cells: [{ column: 'c-SpdhR0ZMGd', value: CFG.cols.statusValor }] } })
     });
     if (!res.ok) {
       const e = await res.json().catch(() => ({}));
