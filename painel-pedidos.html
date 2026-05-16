@@ -548,16 +548,35 @@ function parseRows(rows) {
     let dt = null;
     const raw = v[c.data];
     if (raw) {
-      if (typeof raw === 'number') { dt = new Date(raw); }
-      else {
+      if (typeof raw === 'number') {
+        // Timestamp em milissegundos
         dt = new Date(raw);
-        if (isNaN(dt)) {
-          const m = String(raw).match(/(\d{2})\/(\d{2})\/(\d{4})[,\s]+(\d{2}):(\d{2})/);
+      } else {
+        const s = String(raw).trim();
+        // ISO: 2026-05-16T18:44:00 ou 2026-05-16 18:44
+        if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+          dt = new Date(s.replace(' ', 'T'));
+        }
+        // BR com hora: 16/05/2026 18:44 ou 16/05/2026, 18:44
+        else if (/^\d{2}\/\d{2}\/\d{4}/.test(s)) {
+          const m = s.match(/(\d{2})\/(\d{2})\/(\d{4})[\s,T]+(\d{2}):(\d{2})/);
           if (m) dt = new Date(+m[3], +m[2]-1, +m[1], +m[4], +m[5]);
+          else {
+            // Só data sem hora: 16/05/2026
+            const d = s.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+            if (d) dt = new Date(+d[3], +d[2]-1, +d[1], 0, 0);
+          }
+        }
+        // Fallback genérico
+        else {
+          dt = new Date(s);
         }
       }
     }
-    if (!dt || isNaN(dt)) return null;
+    if (!dt || isNaN(dt)) {
+      console.warn('Data inválida para pedido:', v[c.nome], '| raw:', v[c.data]);
+      return null;
+    }
     return {
       id: row.id || String(i),
       nome: v[c.nome] || '(sem nome)',
