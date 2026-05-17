@@ -552,15 +552,23 @@ setInterval(checkAlerts, 30000);
 async function fetchOrders() {
   document.getElementById('rlabel').textContent = '⟳ Atualizando...';
   try {
-    const url = `https://coda.io/apis/v1/docs/${CFG.docId}/tables/${encodeURIComponent(CFG.tableId)}/rows?limit=500`;
-    const res = await fetch(url, { headers: { Authorization: `Bearer ${CFG.token}` } });
-    if (!res.ok) {
-      const e = await res.json().catch(() => ({}));
-      document.getElementById('rlabel').textContent = `❌ ${e.message || res.status}`;
-      return;
-    }
-    const data = await res.json();
-    const newAllOrders = parseRows(data.items || []);
+    let allItems = [];
+    let pageToken = null;
+
+    do {
+      const url = `https://coda.io/apis/v1/docs/${CFG.docId}/tables/${encodeURIComponent(CFG.tableId)}/rows?limit=500${pageToken ? '&pageToken=' + pageToken : ''}`;
+      const res = await fetch(url, { headers: { Authorization: `Bearer ${CFG.token}` } });
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        document.getElementById('rlabel').textContent = `❌ ${e.message || res.status}`;
+        return;
+      }
+      const data = await res.json();
+      allItems = allItems.concat(data.items || []);
+      pageToken = data.nextPageToken || null;
+    } while (pageToken);
+
+    const newAllOrders = parseRows(allItems);
 
     // Detecta pedidos novos (que não existiam antes)
     if (allOrders.length > 0) {
@@ -618,7 +626,7 @@ function parseRows(rows) {
     if (!dt || isNaN(dt)) return null;
 
     return {
-      id: row.id || String(i),
+      id: row.id, // sempre usa o ID único do Coda
       nome: v[c.nome] || '(sem nome)',
       telefone: v[c.telefone] || '',
       tipo: v[c.tipo] || 'Retirada',
