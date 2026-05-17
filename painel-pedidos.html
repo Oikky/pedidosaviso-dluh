@@ -552,7 +552,7 @@ setInterval(checkAlerts, 30000);
 async function fetchOrders() {
   document.getElementById('rlabel').textContent = '⟳ Atualizando...';
   try {
-    const url = `https://coda.io/apis/v1/docs/${CFG.docId}/tables/${encodeURIComponent(CFG.tableId)}/rows?limit=200`;
+    const url = `https://coda.io/apis/v1/docs/${CFG.docId}/tables/${encodeURIComponent(CFG.tableId)}/rows?limit=500`;
     const res = await fetch(url, { headers: { Authorization: `Bearer ${CFG.token}` } });
     if (!res.ok) {
       const e = await res.json().catch(() => ({}));
@@ -581,7 +581,9 @@ async function fetchOrders() {
 
 function parseRows(rows) {
   const c = CFG.cols;
-  return rows.map((row, i) => {
+  return rows
+    .filter(row => !row.parent) // ignora linhas filho (subpáginas)
+    .map((row, i) => {
     const v = row.values || {};
     let dt = null;
 
