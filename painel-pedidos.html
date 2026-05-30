@@ -164,7 +164,123 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 .btn-qdeliver.late { background:var(--red-soft); border-color:var(--red); color:var(--red); }
 .btn-qdeliver.late:hover { background:var(--red); color:#fff; }
 
-/* ── PRINT STYLES ─────────────────────────────────────── */
+/* ── MOBILE (< 600px) ── */
+@media(max-width:599px) {
+  /* Esconde elementos desktop */
+  .hdr-logo { display: none; }
+  .main { display: none !important; }
+  #unlock-btn { bottom: 80px; }
+
+  /* Header mobile minimalista */
+  .hdr { padding: 8px 12px; gap: 8px; }
+  .hdr-clock { font-size: 1rem; }
+  .hdr-date { font-size: .65rem; }
+  .btn-ic { padding: 6px 8px; font-size: .8rem; }
+  .btn-ic span { display: none; } /* esconde label "Som" */
+
+  /* Mobile list */
+  #mobile-view { display: flex; flex-direction: column; flex: 1; }
+  .m-filters {
+    display: flex; gap: 6px; padding: 8px 12px;
+    border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none;
+  }
+  .m-filters::-webkit-scrollbar { display: none; }
+  .m-pill {
+    flex-shrink: 0; border-radius: 20px; padding: 5px 13px;
+    font-size: .72rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .05em; cursor: pointer; border: 1px solid var(--border);
+    background: var(--surface2); color: var(--text2); transition: all .2s;
+  }
+  .m-pill.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+
+  .m-list { flex: 1; overflow-y: auto; padding: 6px 10px; display: flex; flex-direction: column; gap: 5px; }
+
+  .m-item {
+    border-radius: 12px; padding: 11px 13px;
+    display: flex; align-items: center; gap: 10px;
+    position: relative; overflow: hidden; cursor: pointer;
+    border: 1px solid var(--border); background: var(--surface);
+    transition: all .2s;
+  }
+  .m-item.next { background: rgba(249,115,22,.08); border-color: rgba(249,115,22,.35); }
+  .m-item.delivered { opacity: .4; filter: saturate(0); }
+  .m-bar { width: 3px; position: absolute; left: 0; top: 0; bottom: 0; border-radius: 12px 0 0 12px; }
+  .m-bar.orange { background: var(--accent); }
+  .m-bar.green { background: var(--green); }
+  .m-bar.blue { background: var(--blue); }
+  .m-bar.gray { background: var(--border); }
+  .m-info { flex: 1; min-width: 0; padding-left: 4px; }
+  .m-name { font-weight: 600; font-size: .92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .m-name.next { color: var(--accent); }
+  .m-name.done { color: var(--text3); }
+  .m-sub { font-size: .68rem; color: var(--text2); margin-top: 2px; display: flex; gap: 5px; align-items: center; }
+  .m-tag { border-radius: 20px; padding: 1px 7px; font-size: .6rem; font-weight: 700; text-transform: uppercase; }
+  .m-tag.ret { background: var(--green-soft); color: var(--green); }
+  .m-tag.ent { background: var(--blue-soft); color: var(--blue); }
+  .m-right { text-align: right; flex-shrink: 0; }
+  .m-time { font-family: 'Syne', sans-serif; font-weight: 800; font-size: .88rem; color: var(--text2); }
+  .m-time.next { color: var(--accent); }
+  .m-time.done { color: var(--text3); }
+  .m-cd { font-size: .65rem; color: var(--text3); margin-top: 2px; font-family: 'Syne', sans-serif; font-weight: 700; }
+  .m-cd.urg { color: var(--red); }
+  .m-cd.soon { color: var(--accent); }
+  .m-cd.ok { color: var(--text3); }
+  .m-badge {
+    position: absolute; top: 6px; right: 8px;
+    background: var(--accent); color: #fff;
+    font-size: .52rem; font-weight: 800; text-transform: uppercase;
+    letter-spacing: .08em; border-radius: 4px; padding: 2px 5px;
+  }
+
+  /* Modal de detalhes mobile */
+  #m-modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7);
+    z-index: 400; align-items: flex-end;
+  }
+  #m-modal-overlay.open { display: flex; }
+  #m-modal {
+    background: var(--surface); border-radius: 20px 20px 0 0;
+    width: 100%; max-height: 85vh; overflow-y: auto;
+    padding: 0 0 24px; border-top: 2px solid var(--accent);
+    animation: slideUp .3s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .m-modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 12px auto 16px; }
+  .m-modal-hdr { padding: 0 16px 12px; border-bottom: 1px solid var(--border); }
+  .m-modal-name { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.2rem; }
+  .m-modal-sub { font-size: .8rem; color: var(--text2); margin-top: 3px; }
+  .m-modal-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+  .m-modal-row { display: flex; justify-content: space-between; }
+  .m-modal-label { font-size: .72rem; color: var(--text3); text-transform: uppercase; letter-spacing: .08em; }
+  .m-modal-val { font-family: 'Syne', sans-serif; font-weight: 700; font-size: .95rem; }
+  .m-modal-val.hl { color: var(--accent); }
+  .m-modal-val.green { color: var(--green); }
+  .m-modal-items { background: var(--surface2); border-radius: var(--rs); padding: 10px 12px; }
+  .m-modal-btn {
+    margin: 0 16px; padding: 12px; border-radius: var(--rs);
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: .9rem;
+    cursor: pointer; text-align: center; border: none; transition: all .2s;
+  }
+  .m-modal-btn.deliver { background: var(--green-soft); border: 1px solid var(--green); color: var(--green); }
+  .m-modal-btn.deliver:hover { background: var(--green); color: #fff; }
+  .m-modal-btn.deliver.late { background: var(--red-soft); border-color: var(--red); color: var(--red); }
+  .m-modal-btn.print { background: var(--surface2); border: 1px solid var(--border); color: var(--text2); margin-top: 8px; }
+  .m-modal-timer {
+    background: var(--accent-soft); border: 1px solid var(--accent);
+    border-radius: var(--rs); padding: 10px 14px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .m-modal-timer-lbl { font-size: .75rem; color: var(--accent); }
+  .m-modal-timer-val { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem; color: var(--accent); }
+  .m-modal-timer-val.urg { color: var(--red); animation: blink 1s step-end infinite; }
+  .m-rlabel { text-align: center; padding: 8px; font-size: .68rem; color: var(--text3); }
+}
+
+/* Desktop: hide mobile view */
+@media(min-width:600px) {
+  #mobile-view { display: none !important; }
+  #m-modal-overlay { display: none !important; }
+}
 .btn-print {
   background: var(--surface2); border: 1px solid var(--border); border-radius: var(--rs);
   color: var(--text2); font-family: 'Syne', sans-serif; font-weight: 700; font-size: .9rem;
@@ -302,7 +418,8 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
         </div>
       </div>
     </div>
-    <button class="btn-ic" onclick="testarVoz()" title="Testar voz">🗣️</button>
+    <button class="btn-ic" id="tts-btn" onclick="testarVoz()" title="Testar voz">🗣️</button>
+    <button class="btn-ic" onclick="printAllOrders()" title="Imprimir todos">🖨️ Tudo</button>
     <button class="btn-ic" onclick="fetchOrders()" title="Atualizar">⟳</button>
   </header>
 
@@ -332,6 +449,27 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 
 <!-- ÁREA DE IMPRESSÃO (invisível na tela) -->
 <div id="print-area"></div>
+
+<!-- MOBILE VIEW -->
+<div id="mobile-view">
+  <div class="m-filters">
+    <button class="m-pill active" onclick="setMFilter('todos',this)">Todos</button>
+    <button class="m-pill" onclick="setMFilter('retirada',this)">🛍️ Retirada</button>
+    <button class="m-pill" onclick="setMFilter('entrega',this)">🛵 Entrega</button>
+    <button class="m-pill" onclick="setMFilter('urgente',this)">🔥 Urgente</button>
+  </div>
+  <div class="m-list" id="m-list"></div>
+  <div class="m-rlabel" id="m-rlabel">—</div>
+  <button onclick="printAllOrders()" style="position:fixed;bottom:24px;right:16px;z-index:200;background:var(--accent);color:#fff;border:none;border-radius:50%;width:56px;height:56px;font-size:1.4rem;cursor:pointer;box-shadow:0 4px 12px rgba(249,115,22,.4);display:none" id="m-print-all-btn">🖨️</button>
+</div>
+
+<!-- MOBILE MODAL -->
+<div id="m-modal-overlay" onclick="closeMModal(event)">
+  <div id="m-modal">
+    <div class="m-modal-handle"></div>
+    <div id="m-modal-content"></div>
+  </div>
+</div>
 
 <!-- TOAST -->
 <div class="toast-wrap">
@@ -815,6 +953,7 @@ function renderAll() {
     return a.datetime - b.datetime;
   });
   renderQueue(filtered.filter(o => !featured || o.id !== featured.id), featured, now);
+  renderMobile(); // atualiza versão mobile também
 }
 
 function renderFeatured(order, now) {
@@ -980,6 +1119,159 @@ function buildPrintItems(txt) {
     if (/^[^0-9].+:$/.test(l)) return `<div class="p-section">${esc(l)}</div>`;
     return `<div class="p-item">${esc(l)}</div>`;
   }).join('');
+}
+
+// ── MOBILE RENDER ───────────────────────────────────────
+let mFilter = 'todos';
+
+function setMFilter(f, btn) {
+  mFilter = f;
+  document.querySelectorAll('.m-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMobile();
+}
+
+function renderMobile() {
+  const now = new Date();
+  const upcoming = orders.filter(o => !o.entregue && o.datetime >= now);
+  const lateUndel = orders.filter(o => !o.entregue && o.datetime < now).sort((a,b) => b.datetime - a.datetime);
+  const featured = upcoming[0] || lateUndel[0] || null;
+
+  const filtered = orders.filter(o => {
+    if (mFilter === 'retirada') return o.tipo.toLowerCase().includes('retirada');
+    if (mFilter === 'entrega') return o.tipo.toLowerCase().includes('entrega');
+    if (mFilter === 'urgente') { const m = (o.datetime - now) / 60000; return m >= 0 && m <= 60; }
+    return true;
+  });
+
+  const el = document.getElementById('m-list');
+  if (!filtered.length) { el.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--text3)">✅ Sem pedidos</div>'; return; }
+
+  el.innerHTML = filtered.map((o, i) => {
+    const mins = Math.round((o.datetime - now) / 60000);
+    const isLate = mins < 0;
+    const isEntrega = o.tipo.toLowerCase().includes('entrega');
+    const tipoLabel = isEntrega ? 'Entrega' : 'Retirada';
+    const tc = isEntrega ? 'ent' : 'ret';
+    let cd = '', cdcls = '';
+    if (o.entregue) { cd = '✅ Entregue'; }
+    else if (isLate) { cd = `ATRASADO ${Math.abs(mins)}min`; cdcls = 'urg'; }
+    else if (mins === 0) { cd = 'AGORA'; cdcls = 'urg'; }
+    else if (mins >= 60) { cd = `${Math.floor(mins/60)}h${mins%60?` ${mins%60}min`:''}`; }
+    else { cd = `${mins}min`; cdcls = (isLate || mins <= 15) ? 'urg' : 'soon'; }
+    const isNext = o.id === featured?.id;
+
+    return `
+      <div class="m-item${isNext ? ' next' : ''}${o.entregue ? ' delivered' : ''}" onclick="openMModal('${o.id}')">
+        <div class="m-bar ${isEntrega ? 'blue' : tc === 'ret' ? 'green' : 'orange'}"></div>
+        <div class="m-info">
+          <div class="m-name${isNext ? ' next' : o.entregue ? ' done' : ''}">${esc(o.nome)}</div>
+          <div class="m-sub">
+            <span class="m-tag ${tc}">${tipoLabel}</span>
+            ${fmtDate(o.datetime)}
+          </div>
+        </div>
+        <div class="m-right">
+          <div class="m-time${isNext ? ' next' : o.entregue ? ' done' : ''}">${fmtTime(o.datetime)}</div>
+          <div class="m-cd ${cdcls}">${cd}</div>
+        </div>
+        ${isNext ? '<div class="m-badge">próximo</div>' : ''}
+      </div>`;
+  }).join('');
+
+  document.getElementById('m-rlabel').textContent = `✓ ${filtered.length} pedido${filtered.length !== 1 ? 's' : ''}`;
+  
+  // Mostra botão de imprimir todos
+  const printBtn = document.getElementById('m-print-all-btn');
+  const pendentes = orders.filter(o => !o.entregue);
+  if (window.innerWidth < 600 && pendentes.length > 0) {
+    printBtn.style.display = 'block';
+  } else {
+    printBtn.style.display = 'none';
+  }
+}
+
+function openMModal(id) {
+  const o = orders.find(x => x.id === id);
+  if (!o) return;
+  const isEntrega = o.tipo.toLowerCase().includes('entrega');
+  const tipoLabel = isEntrega ? '🛵 Entrega' : '🛍️ Retirada';
+  const items = parseItems(o.pedido);
+  const now = new Date();
+  const mins = Math.round((o.datetime - now) / 60000);
+  const isLate = mins < 0;
+  let timerTxt = isLate ? `ATRASADO ${Math.abs(mins)}min`
+    : mins === 0 ? 'AGORA!'
+    : mins >= 60 ? `${Math.floor(mins/60)}h ${mins%60}min`
+    : `${mins} min`;
+
+  document.getElementById('m-modal-content').innerHTML = `
+    <div class="m-modal-hdr">
+      <div class="m-modal-name">${esc(o.nome)}</div>
+      <div class="m-modal-sub">${tipoLabel} · ${fmtDate(o.datetime)}</div>
+    </div>
+    <div class="m-modal-body">
+      <div class="m-modal-row">
+        <div><div class="m-modal-label">Horário</div><div class="m-modal-val hl">${fmtTime(o.datetime)}</div></div>
+        <div><div class="m-modal-label">Telefone</div><div class="m-modal-val">${esc(o.telefone || '—')}</div></div>
+      </div>
+      <div class="m-modal-timer">
+        <span class="m-modal-timer-lbl">${isLate ? '⚠️ Atrasado' : '⏳ Tempo'}</span>
+        <span class="m-modal-timer-val${(isLate || mins <= 15) ? ' urg' : ''}">${timerTxt}</span>
+      </div>
+      <div class="m-modal-items">${items}</div>
+      <div class="m-modal-row">
+        <div><div class="m-modal-label">Total</div><div class="m-modal-val green">${esc(String(o.valor || '—'))}</div></div>
+      </div>
+      ${!o.entregue
+        ? `<button class="m-modal-btn deliver${isLate ? ' late' : ''}" id="db-${o.id}" onclick="markDelivered('${o.id}')">✓ Marcar como ${isEntrega ? 'Entregue' : 'Retirado'}</button>`
+        : `<div style="text-align:center;color:var(--green);font-size:.82rem;padding:10px 0">✅ Concluído</div>`}
+      <button class="m-modal-btn print" onclick="event.stopPropagation();printOrder('${o.id}')">🖨️ Imprimir</button>
+    </div>
+  `;
+  document.getElementById('m-modal-overlay').classList.add('open');
+}
+
+function closeMModal(e) {
+  if (e.target === document.getElementById('m-modal-overlay')) {
+    document.getElementById('m-modal-overlay').classList.remove('open');
+  }
+}
+
+// ── PRINT ALL ORDERS ─────────────────────────────────────
+function printAllOrders() {
+  const pendentes = orders.filter(o => !o.entregue);
+  if (!pendentes.length) { alert('Nenhum pedido para imprimir'); return; }
+  if (!confirm(`Imprimir ${pendentes.length} pedido${pendentes.length !== 1 ? 's' : ''} do dia?`)) return;
+
+  let html = '';
+  pendentes.forEach((o, i) => {
+    const isEntrega = o.tipo.toLowerCase().includes('entrega');
+    const tipoLabel = isEntrega ? '🛵 ENTREGA' : '🛍️ RETIRADA';
+    const itemsHtml = buildPrintItems(o.pedido);
+
+    html += `
+      <div style="page-break-after:always;page-break-inside:avoid;margin-bottom:10mm">
+        <div class="p-logo">D'Luh Festas 🍰</div>
+        <div class="p-sub">Salgados & Doces para festas</div>
+        <div class="p-div"></div>
+        <div class="p-row"><span class="p-label">Cliente:</span><span>${esc(o.nome)}</span></div>
+        <div class="p-row"><span class="p-label">Fone:</span><span>${esc(o.telefone||'—')}</span></div>
+        <div class="p-row"><span class="p-label">Tipo:</span><span>${tipoLabel}</span></div>
+        <div class="p-row"><span class="p-label">Data/Hora:</span><span>${fmtDate(o.datetime)} ${fmtTime(o.datetime)}</span></div>
+        <div class="p-div"></div>
+        <div class="p-section">PEDIDO:</div>
+        ${itemsHtml}
+        <div class="p-div"></div>
+        <div class="p-total">Total: ${esc(String(o.valor||'—'))}</div>
+        <div class="p-div"></div>
+        <div class="p-footer">D'Luh Festas agradece seu pedido! ❤️</div>
+      </div>
+    `;
+  });
+
+  document.getElementById('print-area').innerHTML = html;
+  setTimeout(() => window.print(), 100);
 }
 
 // ── BOOT ────────────────────────────────────────────────
